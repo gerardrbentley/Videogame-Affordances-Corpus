@@ -1,0 +1,5 @@
+include LICENSE
+graft vgac_tagging/static
+graft vgac_tagging/templates
+graft tests
+global-exclude *.pyc
