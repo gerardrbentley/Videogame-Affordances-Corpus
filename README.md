@@ -18,9 +18,12 @@ cd Downloads
 bash Miniconda3-latest-MacOSX-x86-64.sh
 ```
 
+The next part assumes you have an SSH key connected to your GitLab account to make pushing/pulling changes easier. Good instructions can be found at [https://docs.gitlab.com/ee/ssh/]. If this is failing try the https link from the 'clone' dropdown above.
+
+
 To get the tagging tool, the following should be the simplest way to get up and running
 ```
-git clone https://pom-itb-gitlab01.campus.pomona.edu/faim-lab/vgac_tagging.git your_folder_name
+git clone git@pom-itb-gitlab01.campus.pomona.edu:faim-lab/vgac_tagging.git your_folder_name
 
 cd your_folder_name/tagging_tool
 
