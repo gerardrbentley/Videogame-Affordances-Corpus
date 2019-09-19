@@ -36,6 +36,8 @@ export FLASK_APP=vgac_tagging
 flask run
 ```
 
+To get the latest dataset go to [https://app.box.com/folder/87149125588] and download the most recent zip file
+
 ## Background
 
 More info to come after publication
