@@ -1,0 +1,37 @@
+.title h1 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 30pt;
+    text-align: center;
+}
+
+.grid {
+    display: grid;
+    height: 712px;
+    width: 808px;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    grid-gap: 20px;
+}
+
+.screenshot img{
+    position: absolute;
+    left: 900px;
+    top: 100px;
+}
+
+.tagging img{
+    position: absolute;
+    left: 1200px;
+    top: 125px;
+}
+
+.gridActions img{
+    position: absolute;
+    left: 900px;
+    top: 350px;
+}
+
+.instructions {
+    position: absolute;
+    left: 900px;
+    top: 400px;
+}
