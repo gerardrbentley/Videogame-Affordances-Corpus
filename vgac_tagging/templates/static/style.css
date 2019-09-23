@@ -1,4 +1,4 @@
-.title h1 {
+#title h1 {
     font-family: 'Courier New', Courier, monospace;
     font-size: 30pt;
     text-align: center;
@@ -38,19 +38,19 @@
     height: 30px;
 }
 
-.tagging img{
+#tagging img{
     position: absolute;
     left: 1200px;
     top: 125px;
 }
 
-.gridActions img{
+#gridActions img{
     position: absolute;
     left: 900px;
     top: 350px;
 }
 
-.instructions {
+#instructions {
     position: absolute;
     left: 900px;
     top: 400px;
