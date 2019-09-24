@@ -4,11 +4,12 @@ import logging
 from flask import Flask
 
 from flask import render_template
+from flask import send_from_directory
 
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True, static_url_path='')
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
@@ -34,9 +35,13 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/test")
-    def hello():
-        return render_template('base.html')
+    @app.route("/")
+    def test_serve():
+        return render_template('served.html')
+
+    @app.route("/testjs")
+    def static_js():
+        return send_from_directory('templates/js/', 'testscript.js')
 
     # TODO: database connection / fake
     # register the database commands
