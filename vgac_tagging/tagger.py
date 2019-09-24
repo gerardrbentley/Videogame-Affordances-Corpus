@@ -12,6 +12,7 @@ from werkzeug.exceptions import abort
 import logging
 import os
 import base64
+import json
 
 import vgac_tagging.db as db_ops
 import vgac_tagging.image_processing as P
@@ -41,7 +42,14 @@ def encode_tile_from_dict(entry):
     return entry
 
 
-@bp.route("/")
+@bp.route("/json")
+def test_json():
+    with open('vgac_tagging/templates/example_data.json') as file:
+        data = json.load(file)
+    return data
+
+
+@bp.route("/get")
 def get_image_to_tag():
     """Show an image and thumbnail to tag."""
     image_file = os.path.join(
