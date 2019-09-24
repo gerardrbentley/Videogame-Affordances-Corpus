@@ -1,6 +1,9 @@
 import os
+import logging
 
 from flask import Flask
+
+from flask import render_template
 
 
 def create_app(test_config=None):
@@ -15,6 +18,9 @@ def create_app(test_config=None):
         # DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
 
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('werkzeug').setLevel(logging.INFO)
+
     if test_config is None:
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
@@ -28,9 +34,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/hello")
+    @app.route("/test")
     def hello():
-        return "Hello, World!"
+        return render_template('base.html')
 
     # TODO: database connection / fake
     # register the database commands
@@ -42,7 +48,6 @@ def create_app(test_config=None):
     from vgac_tagging import tagger
 
     app.register_blueprint(tagger.bp)
-
     app.add_url_rule("/", endpoint="index")
 
     return app
