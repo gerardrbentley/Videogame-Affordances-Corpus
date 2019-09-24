@@ -49,7 +49,7 @@ def test_json():
     return data
 
 
-@bp.route("/get")
+@bp.route("/image")
 def get_image_to_tag():
     """Show an image and thumbnail to tag."""
     image_file = os.path.join(
@@ -75,43 +75,65 @@ def get_image_to_tag():
     return jsonify({'output': output})
 
 
-@bp.route("/<string:game>/<string:num>")
+@bp.route("/image/<string:game>/<string:num>")
 def get_specific_image(game, num):
     """Show an image and thumbnail to tag."""
+    image_file = os.path.join(
+        BASE_DIR, game, 'img', '{}.png'.format(num))
 
-    image_cv, image = P.load_image(image_file=os.path.join(
-        BASE_DIR, game, 'img', '{}.png'.format(num)))
+    image_cv, image = P.load_image(image_file)
     logger.debug('image loaded')
     image_data = b64_string(image)
     logger.debug('image encoced')
-    unique_tiles = P.find_unique_tiles(image_cv)
+    unique_tiles = P.find_unique_tiles(image_cv, ui_height=56)
     logger.debug('tiles found')
     map_dict(encode_tile_from_dict, unique_tiles)
     logger.debug('tiles encoced')
-
+    tags = P.load_label(image_file)
+    tag_images = P.numpy_to_images(tags)
+    map_dict(b64_string, tag_images)
     output = {
         'image': image_data,
-        'tiles': unique_tiles
+        'tiles': unique_tiles,
+        'tag_images': tag_images
     }
     logger.debug('specific route ok')
     return jsonify({'output': output})
 
 
-@bp.route("/apply", methods=['POST'])
-def apply_affordances():
-    """Apply affordances to a certain area of image"""
+@bp.route("/tile", methods=['POST'])
+def save_tile_affordances():
+    """Save affordances for a certain tile"""
 
     affordances = request.form['affordances']
-    image = request.form['image']
     tile = request.form['tile']
+    tagger = request.form['tagger_id']
+    #TODO: send tile_id to client then back, not full tile
 
-    #save tile image with affordances
-    #mark affordances on image's label
+    #TODO: save tile image with affordances
 
     output = {
         'Success': True,
         'Response': 200,
-        'Image': image
+    }
+
+    return output
+
+
+@bp.route("/affordances", methods=['POST'])
+def save_blob_affordances():
+    """Save a blob for one affordance for one image"""
+
+    affordance = request.form['affordance']
+    image = request.form['image_id']
+    blob = request.form['affordance_blob']
+    tagger = request.form['tagger_id']
+
+    #TODO: save in database
+
+    output = {
+        'Success': True,
+        'Response': 200,
     }
 
     return output
