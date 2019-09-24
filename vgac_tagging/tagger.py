@@ -14,9 +14,9 @@ import os
 import base64
 
 import vgac_tagging.db as db_ops
+import vgac_tagging.image_processing as P
 
-import cv2
-import numpy as np
+
 # from flaskr.auth import login_required
 # from flaskr.db import get_db
 
@@ -24,29 +24,69 @@ logger = logging.getLogger(__name__)
 bp = Blueprint("tagger", __name__)
 
 IMAGE_BASE = "data:image/png;base64,{}"
+BASE_DIR = os.path.join('..', 'affordances_corpus', 'games')
+
+
+def b64_string(data):
+    return IMAGE_BASE.format((base64.b64encode(data)).decode('utf-8'))
+
+
+def map_dict(func, dict):
+    for k, v in dict.items():
+        dict[k] = func(v)
+
+
+def encode_tile_from_dict(entry):
+    entry['tile_data'] = b64_string(entry['tile_data'])
+    return entry
 
 
 @bp.route("/")
 def get_image_to_tag():
     """Show an image and thumbnail to tag."""
-    # db = get_db()
-    # posts = db.execute(
-    #     "SELECT p.id, title, body, created, author_id, username"
-    #     " FROM post p JOIN user u ON p.author_id = u.id"
-    #     " ORDER BY created DESC"
-    # ).fetchall()
-    image = load_image()
-    image_data = (base64.b64encode(image))
-    logger.debug('image encoced: {}'.format(image_data))
-    image_data = IMAGE_BASE.format(image_data)
-    unique_tiles = find_unique_tiles(image)
+    image_file = os.path.join(
+        '..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')
+
+    image_cv, image = P.load_image(image_file)
+    image_data = b64_string(image)
+    logger.debug('Image encoded')
+
+    unique_tiles = P.find_unique_tiles(image_cv, ui_height=56)
+    map_dict(encode_tile_from_dict, unique_tiles)
+    logger.debug('Tiles encoded')
+
+    tags = P.load_label(image_file)
+    tag_images = P.numpy_to_images(tags)
+    map_dict(b64_string, tag_images)
+    output = {
+        'image': image_data,
+        'tiles': unique_tiles,
+        'tag_images': tag_images
+    }
+    logger.debug('base route ok')
+    return jsonify({'output': output})
+
+
+@bp.route("/<string:game>/<string:num>")
+def get_specific_image(game, num):
+    """Show an image and thumbnail to tag."""
+
+    image_cv, image = P.load_image(image_file=os.path.join(
+        BASE_DIR, game, 'img', '{}.png'.format(num)))
+    logger.debug('image loaded')
+    image_data = b64_string(image)
+    logger.debug('image encoced')
+    unique_tiles = P.find_unique_tiles(image_cv)
+    logger.debug('tiles found')
+    map_dict(encode_tile_from_dict, unique_tiles)
+    logger.debug('tiles encoced')
 
     output = {
         'image': image_data,
         'tiles': unique_tiles
     }
-    logger.debug('base route ok')
-    return jsonify(output)
+    logger.debug('specific route ok')
+    return jsonify({'output': output})
 
 
 @bp.route("/apply", methods=['POST'])
@@ -68,82 +108,6 @@ def apply_affordances():
 
     return output
 
-
-def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
-    logger.debug(image_file)
-    orig_cv = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
-    if orig_cv.shape[2] == 4:
-        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
-    orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
-    return orig_cv
-
-
-def gen_grid(width, height, grid_size, ui_height=0, ui_position='top', grid_offset_x=0, grid_offset_y=0):
-    if ui_position == 'top':
-        ignore_start = ui_height
-    else:
-        ignore_start = 0
-    row_num = (height - ui_height) // grid_size
-    if (row_num * grid_size) + ignore_start + grid_offset_y >= height:
-        row_num -= 1
-    col_num = (width) // grid_size
-    if (col_num * grid_size) + grid_offset_x > width:
-        col_num -= 1
-
-    rows, cols = np.indices((row_num, col_num))
-    rows = rows * grid_size
-    cols = cols * grid_size
-
-    rows = rows + ignore_start + grid_offset_y
-    cols = cols + grid_offset_x
-
-    return rows, cols
-
-
-def point_on_grid(c, r, cols, rows):
-    return c in cols and r in rows
-
-
-GRID_SIZE = 16
-
-
-def find_unique_tiles(image):
-    print('Finding unique tiles in img')
-    img_tiles = {}
-    visited_locations = []
-    tile_ctr = 0
-    skip_ctr = 0
-    rows, cols = gen_grid(256, 224, 16, 56)
-    for r in np.unique(rows):
-        for c in np.unique(cols):
-            if((r, c) not in visited_locations):
-                template_np = image[r:r+GRID_SIZE if r+GRID_SIZE <= 224 else 224,
-                                    c:c+GRID_SIZE if c+GRID_SIZE <= 256 else 256].copy()
-                template_data = base64.b64encode(template_np)
-                template_data = IMAGE_BASE.format(template_data)
-                res = cv2.matchTemplate(
-                    template_np, image, cv2.TM_SQDIFF_NORMED)
-                loc = np.where(res <= 5e-6)
-                matches = list(zip(*loc[::1]))
-                matches = [(y, x) for (y, x) in matches if point_on_grid(
-                    x, y, cols, rows)]
-                matches_int = [(int(y), int(x)) for (y, x) in matches if point_on_grid(
-                    x, y, cols, rows)]
-                if len(matches) != 0:
-                    for match_loc in matches:
-                        visited_locations.append(match_loc)
-                else:
-                    print(
-                        'ERROR MATCHING TILE WITHIN IMAGE: (r,c) ({},{})'.format(r, c))
-
-                img_tiles[tile_ctr] = ((template_data, matches_int))
-                tile_ctr += 1
-            else:
-                skip_ctr += 1
-
-    print('VISITED {} tiles, sum of unique({}) + skip({}) = {}'.format(
-        len(visited_locations), len(img_tiles), skip_ctr, (len(img_tiles)+skip_ctr)))
-    return img_tiles
 
 #
 # def get_post(id, check_author=True):
