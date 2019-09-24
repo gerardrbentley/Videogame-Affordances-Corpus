@@ -68,7 +68,7 @@ def is_unique_in_list(new_tile, prev_tiles):
     return True
 
 
-def get_unique_tiles(image, offset_y, offset_x, prev_best=10000):
+def get_unique_tiles(image, offset_y=0, offset_x=0, prev_best=10000):
     h, w, c = image.shape
     print(offset_y, h-GRID_SIZE+offset_y, offset_x, w-GRID_SIZE+offset_x)
     cropped_img = np.copy(
