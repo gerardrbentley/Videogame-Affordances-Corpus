@@ -23,6 +23,8 @@ import numpy as np
 logger = logging.getLogger(__name__)
 bp = Blueprint("tagger", __name__)
 
+IMAGE_BASE = "data:image/png;base64,{}"
+
 
 @bp.route("/")
 def get_image_to_tag():
@@ -34,8 +36,9 @@ def get_image_to_tag():
     #     " ORDER BY created DESC"
     # ).fetchall()
     image = load_image()
-    image_data = str(base64.b64encode(image))
+    image_data = (base64.b64encode(image))
     logger.debug('image encoced: {}'.format(image_data))
+    image_data = IMAGE_BASE.format(image_data)
     unique_tiles = find_unique_tiles(image)
 
     output = {
@@ -116,7 +119,8 @@ def find_unique_tiles(image):
             if((r, c) not in visited_locations):
                 template_np = image[r:r+GRID_SIZE if r+GRID_SIZE <= 224 else 224,
                                     c:c+GRID_SIZE if c+GRID_SIZE <= 256 else 256].copy()
-                template_data = str(base64.b64encode(template_np))
+                template_data = base64.b64encode(template_np)
+                template_data = IMAGE_BASE.format(template_data)
                 res = cv2.matchTemplate(
                     template_np, image, cv2.TM_SQDIFF_NORMED)
                 loc = np.where(res <= 5e-6)
