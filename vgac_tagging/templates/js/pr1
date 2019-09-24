@@ -1,0 +1,4 @@
+function myFunction() 
+{
+  document.getElementById("title").innerHTML = "Hello World";
+}
