@@ -1,40 +1,72 @@
 var tile = document.getElementById("tile");
-var tile2 = document.getElementById("tile2");
-var tile3 = document.getElementById("tile3");
-var tile4 = document.getElementById("tile4");
-var tile5 = document.getElementById("tile5");
-var tile6 = document.getElementById("tile6");
-var tile7 = document.getElementById("tile7");
-var tile8 = document.getElementById("tile8");
-var tile9 = document.getElementById("tile9");
-var tile10 = document.getElementById("tile10");
-var tile11 = document.getElementById("tile11");
-var tile12 = document.getElementById("tile12");
-var tile13 = document.getElementById("tile13");
-var tile14 = document.getElementById("tile14");
+var canvas_draw = document.getElementById("myCanvas");
 
-var tileList = [tile, tile2, tile3, tile4, tile5, tile6, tile7, tile8, tile9, tile10, tile11, tile12, tile13, tile14];
-var _ = tileList.length - 1;
-/* doesn't work yet */
-/*document.addEventListener("keydown", event => 
+var mydata;
+var num = 0;
+
+(function() 
 {
-    for (i = tileList.length; i < tileList.length; i++)
+    // Load the script
+    var script = document.createElement("SCRIPT");
+    script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+    script.type = 'text/javascript';
+    script.onload = function() 
     {
-        if (event.keyCode === 13)
+        var $ = window.jQuery;
+        // Use $ here...
+        $.getJSON("example_data.json", function(json) 
         {
-            alert('Hello');
-        }
-    }
-});*/
-document.onkeydown = function(event)
+            mydata = json;
+            //console.log(json); // this will show the info it in firebug console
+        });
+    };
+    document.getElementsByTagName("head")[0].appendChild(script);
+})();
+
+//TODO: can host it on a real URL; find one online 4 free 
+//TODO: draw a square around current tile; on enter refresh
+// get coordinates and draw a square on top
+var x_pos;
+var y_pos;
+
+function draw(x, y)
 {
-        
+    
+    if (canvas_draw.getContext)
+    {
+        var ctx = canvas_draw.getContext('2d');
+        //drawing code here
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgb(0,0,0)";
+        ctx.strokeRect (x, y, 16, 16);
+    } 
+    else 
+    {
+        // canvas-unsupported code here
+    }
+}
+var count = 0;
+document.onkeydown = function(event)
+{     
+    //num = num + 1;
+    var tiles = mydata['output']['tiles'];  
+    var positions = mydata['output']['tiles'][]
     switch (event.keyCode)
     {
         case 13:
-            alert('fuck');
-            tileList[_].style.visibility = "hidden";
-            _ = _ -1;
+            //alert('test'); //remove if needed
+            for (i = 0; i < )
+            draw(0, 0);//here draw all the squares around tiles
+            tile.src = tiles['tile_' + num]['tile_data'];
+            if (num == (Object.keys(tiles).length - 1))
+            {
+                alert('Out of tiles. Last tile num = ' + num);   
+                break;         
+            }
+            else
+            {
+                num = num + 1;
+            }
             break;
     }
 }
