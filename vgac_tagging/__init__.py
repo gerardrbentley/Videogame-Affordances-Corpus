@@ -5,6 +5,7 @@ from flask import Flask
 
 from flask import render_template
 from flask import send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 
 
 def create_app(test_config=None):
@@ -43,11 +44,24 @@ def create_app(test_config=None):
     def static_js():
         return send_from_directory('templates/js/', 'testscript.js')
 
+    #TODO: get from env variables for docker
+    POSTGRES_URL = 'localhost'
+    POSTGRES_USER = 'gbkh2015'
+    POSTGRES_PASS = 'dev'
+    POSTGRES_DB = 'affordances_db'
+
+    DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
+        POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+    # silence the deprecation warning
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     # TODO: database connection / fake
     # register the database commands
-    # from flaskr import db
-    #
-    # db.init_app(app)
+    from vgac_tagging import db
+
+    db.init_app(app)
 
     # apply the blueprints to the app
     from vgac_tagging import tagger
