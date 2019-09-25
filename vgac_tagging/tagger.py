@@ -14,7 +14,7 @@ import os
 import base64
 import json
 
-import vgac_tagging.db as db_ops
+from vgac_tagging import db
 import vgac_tagging.image_processing as P
 
 
