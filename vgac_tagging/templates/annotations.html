@@ -1,0 +1,14 @@
+<html>
+<body>
+   <h1>Annotations</h1>
+   <a href="{{url_for('newAnnotation')}}">
+       <button>Add Annotation</button>
+   </a>
+   <ol>
+       {% for annotation in annotations %}
+       <li> {{annotation.img_id}}, {{annotation.tagger_id}} </li>
+       <br> <br>
+       {% endfor %}
+   </ol>
+</body>
+</html>
