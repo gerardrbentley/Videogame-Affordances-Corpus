@@ -4,3 +4,6 @@ channels:
 dependencies:
   - flask=1.1.1
   - python=3.7.4
+  - opencv=3.4.2
+  - flask-sqlalchemy=2.4.0
+  - psycopg2=2.8.3

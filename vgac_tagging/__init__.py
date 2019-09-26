@@ -1,11 +1,16 @@
 import os
+import logging
 
 from flask import Flask
+
+from flask import render_template
+from flask import send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True, static_url_path='')
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
@@ -14,6 +19,9 @@ def create_app(test_config=None):
         # store the database in the instance folder
         # DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('werkzeug').setLevel(logging.INFO)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -28,21 +36,37 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
+    @app.route("/")
+    def test_serve():
+        return render_template('served.html')
+
+    @app.route("/testjs")
+    def static_js():
+        return send_from_directory('templates/js/', 'testscript.js')
+
+    #TODO: get from env variables for docker
+    POSTGRES_URL = 'localhost'
+    POSTGRES_USER = 'gbkh2015'
+    POSTGRES_PASS = 'dev'
+    POSTGRES_DB = 'affordances_db'
+
+    DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
+        POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+    # silence the deprecation warning
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # TODO: database connection / fake
     # register the database commands
-    # from flaskr import db
-    #
-    # db.init_app(app)
+    from vgac_tagging import db
+
+    db.init_app(app)
 
     # apply the blueprints to the app
     from vgac_tagging import tagger
 
     app.register_blueprint(tagger.bp)
-
     app.add_url_rule("/", endpoint="index")
 
     return app
