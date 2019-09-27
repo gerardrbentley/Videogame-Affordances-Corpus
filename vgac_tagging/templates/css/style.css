@@ -29,13 +29,11 @@
     height: 100%;
 
 }
-.container .box {
+.container canvas {
     position: absolute;
     background: blue;
     top: 0px;
     left: 0px;
-    width: 30px;
-    height: 30px;
 }
 
 #tagging img{
@@ -55,3 +53,12 @@
     left: 900px;
     top: 400px;
 }
+
+.checkBoxes {
+    position: absolute;
+    left: 1225px;
+    top: 300px;
+    width: 81px;
+    margin: 50px auto;
+    padding-left: 5px;
+  }
