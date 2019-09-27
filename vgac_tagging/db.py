@@ -2,13 +2,25 @@ import os
 import glob
 import click
 from datetime import datetime
+import base64
+import numpy as np
 
 from flask import current_app
 from flask import g
 from flask.cli import with_appcontext
 
-from sqlalchemy import create_engine, bindparam, String, Integer, DateTime
+from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary
 from sqlalchemy.sql import text
+
+import image_processing as P
+
+POSTGRES_URL = 'localhost'
+POSTGRES_USER = 'gbkh2015'
+POSTGRES_PASS = 'dev'
+POSTGRES_DB = 'affordances_db'
+
+DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
+    POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
 
 ''' Lists all png images with file structure DIR/GAME_NAME/img/0.png'''
 
@@ -17,7 +29,7 @@ def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
     image_files = []
     for game in list_games(dir):
         per_game_files = glob.glob(os.path.join(dir, game, 'img', '*.png'))
-        image_files.append(per_game_files)
+        image_files.append((game, per_game_files))
     return image_files
 
 
@@ -30,10 +42,25 @@ def curr_timestamp():
     return (datetime.now())
 
 
-def insert_screenshot(game, width, height):
+def ingest_screenshots(dir=os.path.join('..', '..', 'affordances_corpus', 'games')):
+    for game, file_names in get_image_files(dir):
+        for image_file in file_names:
+            print('loading f: ', image_file, ' FROM ', game)
+            cv, data = P.load_image(image_file)
+            h, w, c = cv.shape
+            print('w: ', w, 'h: ', h)
+            data = data.tobytes()
+            print(type(data))
+            print(cv.dtype)
+            insert_screenshot(game, int(w), int(h), data, dev=DB_URL)
+            print('INSERTED')
+            return None
+
+
+def insert_screenshot(game, width, height, image, dev=None):
     cmd = text(
-        """INSERT INTO screenshots(image_id, game, width, height, created_on)
-        VALUES(DEFAULT, :g, :w, :h, :dt)
+        """INSERT INTO screenshots(image_id, game, width, height, created_on, data)
+        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
         """
     )
     cmd = cmd.bindparams(
@@ -41,8 +68,51 @@ def insert_screenshot(game, width, height):
         bindparam('w', value=width, type_=Integer),
         bindparam('h', value=height, type_=Integer),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('i', value=image, type_=LargeBinary)
     )
-    get_connection().execute(cmd)
+    get_connection(dev).execute(cmd)
+
+
+def get_random_screenshot(dev=None):
+    cmd = text(
+        """SELECT * FROM screenshots OFFSET
+        floor(random() * (SELECT COUNT (*) FROM screenshots))
+        LIMIT 1;
+        """
+    )
+    res = get_connection(dev).execute(cmd)
+
+    for row in res:
+        output = {
+            'image_id': row['image_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'data': row['data'],
+        }
+    return output
+
+
+def get_screenshot_by_id(id, dev=None):
+    cmd = text(
+        """SELECT * FROM screenshots
+        WHERE image_id = :id
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('id', value=id, type_=Integer),
+    )
+    res = get_connection(dev).execute(cmd)
+
+    for row in res:
+        output = {
+            'image_id': row['image_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'data': row['data'],
+        }
+    return output
 
 
 def init_db():
@@ -147,8 +217,11 @@ def drop_all():
         conn.execute(cmd)
 
 
-def get_connection():
-    url = current_app.config['SQLALCHEMY_DATABASE_URI']
+def get_connection(dev=None):
+    if dev is not None:
+        url = dev
+    else:
+        url = current_app.config['SQLALCHEMY_DATABASE_URI']
     engine = create_engine(url, echo=True)
     return engine
 
