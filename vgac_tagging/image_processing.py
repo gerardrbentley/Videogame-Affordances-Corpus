@@ -8,6 +8,9 @@ AFFORDANCES = ["solid", "movable", "destroyable",
 
 def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
     orig_cv = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
+    channels = cv2.split(orig_cv)
+    if(len(channels) == 1):
+        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_GRAY2BGR)
     if orig_cv.shape[2] == 4:
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
     # orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
@@ -15,11 +18,15 @@ def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz
     return orig_cv, image
 
 
-def load_tile(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'tile_img', '0.png')):
-    orig_cv = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
-    if orig_cv.shape[2] == 4:
-        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
-    # orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
+def load_sprite(sprite_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'sprite', '1.png')):
+    orig_cv = cv2.imread(sprite_file, cv2.IMREAD_UNCHANGED)
+    channels = cv2.split(orig_cv)
+    if(len(channels) == 1):
+        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_GRAY2BGRA)
+        channels = cv2.split(orig_cv)
+    if(len(channels) == 3):
+        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2BGRA)
+        channels = cv2.split(orig_cv)
     _, image = cv2.imencode('.png', orig_cv)
     return orig_cv, image
 
@@ -27,12 +34,11 @@ def load_tile(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz'
 def load_label(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
     label_file = image_file.replace('img', 'label').replace('png', 'npy')
     if os.path.isfile(label_file):
-        print('Label File Found')
+        # print('Label File Found')
         stacked_array = np.load(label_file)
     else:
-        print('New Label File')
-        stacked_array = np.full(
-            [224, 256, 9], fill_value=0.5)
+        # print('New Label File')
+        stacked_array = None
     return stacked_array
 
 
