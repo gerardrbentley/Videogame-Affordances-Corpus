@@ -470,6 +470,7 @@ def drop_all():
               'tiles', 'tile_tags', 'sprites', 'sprite_tags']
     BASE = "DROP TABLE IF EXISTS {} CASCADE"
     conn = get_connection()
+
     for table in tables:
         cmd = text(BASE.format(table))
         conn.execute(cmd)
@@ -477,7 +478,9 @@ def drop_all():
 
 def get_connection():
     url = current_app.config['SQLALCHEMY_DATABASE_URI']
+    print(url)
     engine = create_engine(url, echo=True)
+
     return engine
 
 
@@ -503,46 +506,34 @@ def close_db(e=None):
     pass
 
 
-@click.command("init-db")
-@with_appcontext
-def init_db_command():
-    """Clear existing data and create new tables."""
-    init_db()
-    click.echo("Initialized the database.")
+#@click.command("init-db")
+#@with_appcontext
+#def init_db_command():
+#    """Clear existing data and create new tables."""
+#    init_db()
+#    click.echo("Initialized the database.")
+#
+#@click.command("destroy-db")
+#@with_appcontext
+#def destroy_db_command():
+#    """Clear existing tables."""
+#    drop_all()
+#    click.echo("Destroyed the database.")
 
 
-@click.command("destroy-db")
-@with_appcontext
-def destroy_db_command():
-    """Clear existing tables."""
-    drop_all()
-    click.echo("Destroyed the database.")
+#@click.command("test-db")
+#@with_appcontext
+#def test_db_command():
+#    """test insert."""
+#    insert_screenshot('test_game', 256, 224)
+#    click.echo("Inserted the database.")
 
 
-@click.command("ingest-db")
-@with_appcontext
-def ingest_db_command():
-    """ingest insert."""
-    ingest_filesystem_data()
-    click.echo("Inserted the database.")
-
-
-@click.command("reset-db")
-@with_appcontext
-def reset_db_command():
-    """ingest insert."""
-    drop_all()
-    init_db()
-    ingest_filesystem_data()
-    click.echo("Inserted the database.")
-
-
-def init_app(app):
-    """Register database functions with the Flask app. This is called by
-    the application factory.
-    """
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
-    app.cli.add_command(destroy_db_command)
-    app.cli.add_command(ingest_db_command)
-    app.cli.add_command(reset_db_command)
+#def init_app(app):
+#    """Register database functions with the Flask app. This is called by
+#    the application factory.
+#    """
+#    app.teardown_appcontext(close_db)
+#    app.cli.add_command(init_db_command)
+#    app.cli.add_command(destroy_db_command)
+#    app.cli.add_command(test_db_command)
