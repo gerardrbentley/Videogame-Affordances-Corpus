@@ -49,6 +49,12 @@ def test_json():
     return data
 
 
+@bp.route("/testinsert")
+def test_insert():
+    db.insert_screenshot('test_game', 256, 224)
+    return 'INSERTED'
+
+
 @bp.route("/image")
 def get_image_to_tag():
     """Show an image and thumbnail to tag."""
