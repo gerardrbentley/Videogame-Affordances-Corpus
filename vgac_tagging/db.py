@@ -4,15 +4,16 @@ import click
 from datetime import datetime
 import base64
 import numpy as np
+import csv
 
 from flask import current_app
 from flask import g
 from flask.cli import with_appcontext
 
-from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary
+from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary, Boolean
 from sqlalchemy.sql import text
 
-import image_processing as P
+import vgac_tagging.image_processing as P
 
 POSTGRES_URL = 'localhost'
 POSTGRES_USER = 'gbkh2015'
@@ -29,7 +30,12 @@ def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
     image_files = []
     for game in list_games(dir):
         per_game_files = glob.glob(os.path.join(dir, game, 'img', '*.png'))
-        image_files.append((game, per_game_files))
+        game_tile_files = glob.glob(
+            os.path.join(dir, game, 'tile_img', '*.png'))
+        game_sprite_files = glob.glob(
+            os.path.join(dir, game, 'sprite', '*.png'))
+        image_files.append(
+            (game, per_game_files, game_tile_files, game_sprite_files))
     return image_files
 
 
@@ -42,25 +48,98 @@ def curr_timestamp():
     return (datetime.now())
 
 
-def ingest_screenshots(dir=os.path.join('..', '..', 'affordances_corpus', 'games')):
-    for game, file_names in get_image_files(dir):
-        for image_file in file_names:
-            print('loading f: ', image_file, ' FROM ', game)
-            cv, data = P.load_image(image_file)
+def affords_from_csv_file(file, file_num_str):
+    with open(file, mode='r') as tile_csv:
+        csv_reader = csv.DictReader(tile_csv)
+        for row in csv_reader:
+            if row['file'] == file_num_str:
+                out = []
+                for x in row:
+                    if x != 'file':
+                        out.append(bool(int(row[x])))
+                return out
+    return None
+
+
+def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
+    for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
+        for screen_file in screenshot_files:
+            # print('loading f: ', screen_file, ' FROM ', game)
+            cv, encoded_png = P.load_image(screen_file)
             h, w, c = cv.shape
-            print('w: ', w, 'h: ', h)
-            data = data.tobytes()
-            print(type(data))
-            print(cv.dtype)
-            insert_screenshot(game, int(w), int(h), data, dev=DB_URL)
-            print('INSERTED')
-            return None
+            # print('w: ', w, 'h: ', h)
+            data = encoded_png.tobytes()
+            # print(type(data))
+            # print(cv.dtype)
+            result = insert_screenshot(game, int(w), int(h), data)
+            image_id = result['image_id']
+            label = P.load_label(screen_file)
+            if label is not None:
+                ingest_screenshot_tags(label, image_id)
+            # print('INSERTED')
+            # return None
+
+        for tile_file in tile_files:
+            file_name = os.path.split(tile_file)[1]
+            file_num_str = os.path.splitext(file_name)[0]
+
+            cv, encoded_png = P.load_image(tile_file)
+            h, w, c = cv.shape
+            data = encoded_png.tobytes()
+            result = insert_tile(game, int(w), int(h), data)
+            tile_id = result['tile_id']
+
+            csv_file = os.path.join(dir, game, 'tile_affordances.csv')
+            tile_affords = affords_from_csv_file(csv_file, file_num_str)
+            if tile_affords is not None:
+                ingest_tile_tags(tile_affords, tile_id)
+
+        for sprite_file in sprite_files:
+            file_name = os.path.split(sprite_file)[1]
+            file_num_str = os.path.splitext(file_name)[0]
+
+            #4 channel with alpha
+            cv, encoded_png = P.load_sprite(sprite_file)
+            h, w, c = cv.shape
+            data = encoded_png.tobytes()
+            result = insert_sprite(game, int(w), int(h), data)
+            sprite_id = result['sprite_id']
+
+            csv_file = os.path.join(dir, game, 'sprite_affordances.csv')
+            sprite_affords = affords_from_csv_file(csv_file, file_num_str)
+            if sprite_affords is not None:
+                ingest_sprite_tags(sprite_affords, sprite_id)
 
 
-def insert_screenshot(game, width, height, image, dev=None):
+def ingest_screenshot_tags(stacked_array, image_id):
+    channels_dict = P.numpy_to_images(stacked_array)
+    tagger = 'ingested'
+    for i, affordance in enumerate(P.AFFORDANCES):
+        encoded_channel = channels_dict[affordance]
+        channel_data = encoded_channel.tobytes()
+        insert_screenshot_tag(image_id, i, tagger, channel_data)
+    pass
+
+
+def ingest_tile_tags(affords, tile_id):
+    tagger = 'ingested'
+    insert_tile_tag(tile_id, tagger, affords[0], affords[1], affords[2],
+                    affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
+    pass
+
+
+def ingest_sprite_tags(affords, sprite_id):
+    tagger = 'ingested'
+    insert_sprite_tag(sprite_id, tagger, affords[0], affords[1], affords[2],
+                      affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
+    pass
+
+
+def insert_screenshot(game, width, height, image):
     cmd = text(
         """INSERT INTO screenshots(image_id, game, width, height, created_on, data)
         VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        RETURNING image_id
         """
     )
     cmd = cmd.bindparams(
@@ -70,17 +149,131 @@ def insert_screenshot(game, width, height, image, dev=None):
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
         bindparam('i', value=image, type_=LargeBinary)
     )
-    get_connection(dev).execute(cmd)
+    res = get_connection().execute(cmd)
+
+    for row in res:
+        output = {
+            'image_id': row['image_id'],
+        }
+    return output
 
 
-def get_random_screenshot(dev=None):
+def insert_screenshot_tag(image_id, affordance, tagger, data):
+    cmd = text(
+        """INSERT INTO screenshot_tags(image_id, affordance, tagger_id, created_on, tags)
+        VALUES(:i, :a, :t, :dt, :d)
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('i', value=image_id, type_=Integer),
+        bindparam('a', value=affordance, type_=Integer),
+        bindparam('t', value=tagger, type_=String),
+        bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('d', value=data, type_=LargeBinary)
+    )
+    get_connection().execute(cmd)
+
+
+def insert_tile(game, width, height, image):
+    cmd = text(
+        """INSERT INTO tiles(tile_id, game, width, height, created_on, data)
+        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        RETURNING tile_id
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('g', value=game, type_=String),
+        bindparam('w', value=width, type_=Integer),
+        bindparam('h', value=height, type_=Integer),
+        bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('i', value=image, type_=LargeBinary)
+    )
+    res = get_connection().execute(cmd)
+
+    for row in res:
+        output = {
+            'tile_id': row['tile_id'],
+        }
+    return output
+
+
+def insert_tile_tag(tile_id, tagger, solid, movable, destroyable, dangerous, gettable, portal, usable, changeable, ui):
+    cmd = text(
+        """INSERT INTO tile_tags(tile_id, created_on, tagger_id, solid, movable, destroyable, dangerous, gettable, portal, usable, changeable, ui)
+        VALUES(:ti, :dt, :ta, :s, :m, :de, :da, :g, :p, :us, :c, :ui)
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('ti', value=tile_id, type_=Integer),
+        bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('ta', value=tagger, type_=String),
+        bindparam('s', value=solid, type_=Boolean),
+        bindparam('m', value=movable, type_=Boolean),
+        bindparam('de', value=destroyable, type_=Boolean),
+        bindparam('da', value=dangerous, type_=Boolean),
+        bindparam('g', value=gettable, type_=Boolean),
+        bindparam('p', value=portal, type_=Boolean),
+        bindparam('us', value=usable, type_=Boolean),
+        bindparam('c', value=changeable, type_=Boolean),
+        bindparam('ui', value=ui, type_=Boolean),
+    )
+    get_connection().execute(cmd)
+
+
+def insert_sprite(game, width, height, image):
+    cmd = text(
+        """INSERT INTO sprites(sprite_id, game, width, height, created_on, data)
+        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        RETURNING sprite_id
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('g', value=game, type_=String),
+        bindparam('w', value=width, type_=Integer),
+        bindparam('h', value=height, type_=Integer),
+        bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('i', value=image, type_=LargeBinary)
+    )
+    res = get_connection().execute(cmd)
+
+    for row in res:
+        output = {
+            'sprite_id': row['sprite_id'],
+        }
+    return output
+
+
+def insert_sprite_tag(sprite_id, tagger, solid, movable, destroyable, dangerous, gettable, portal, usable, changeable, ui):
+    cmd = text(
+        """INSERT INTO sprite_tags(sprite_id, created_on, tagger_id, solid, movable, destroyable, dangerous, gettable, portal, usable, changeable, ui)
+        VALUES(:ti, :dt, :ta, :s, :m, :de, :da, :g, :p, :us, :c, :ui)
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('ti', value=sprite_id, type_=Integer),
+        bindparam('dt', value=curr_timestamp(), type_=DateTime),
+        bindparam('ta', value=tagger, type_=String),
+        bindparam('s', value=solid, type_=Boolean),
+        bindparam('m', value=movable, type_=Boolean),
+        bindparam('de', value=destroyable, type_=Boolean),
+        bindparam('da', value=dangerous, type_=Boolean),
+        bindparam('g', value=gettable, type_=Boolean),
+        bindparam('p', value=portal, type_=Boolean),
+        bindparam('us', value=usable, type_=Boolean),
+        bindparam('c', value=changeable, type_=Boolean),
+        bindparam('ui', value=ui, type_=Boolean),
+    )
+    get_connection().execute(cmd)
+
+
+def get_random_screenshot():
     cmd = text(
         """SELECT * FROM screenshots OFFSET
         floor(random() * (SELECT COUNT (*) FROM screenshots))
         LIMIT 1;
         """
     )
-    res = get_connection(dev).execute(cmd)
+    res = get_connection().execute(cmd)
 
     for row in res:
         output = {
@@ -93,7 +286,7 @@ def get_random_screenshot(dev=None):
     return output
 
 
-def get_screenshot_by_id(id, dev=None):
+def get_screenshot_by_id(id):
     cmd = text(
         """SELECT * FROM screenshots
         WHERE image_id = :id
@@ -102,7 +295,7 @@ def get_screenshot_by_id(id, dev=None):
     cmd = cmd.bindparams(
         bindparam('id', value=id, type_=Integer),
     )
-    res = get_connection(dev).execute(cmd)
+    res = get_connection().execute(cmd)
 
     for row in res:
         output = {
@@ -112,6 +305,71 @@ def get_screenshot_by_id(id, dev=None):
             'height': row['height'],
             'data': row['data'],
         }
+    return output
+
+
+def get_tile_affordances(tile_id):
+    cmd = text(
+        """SELECT * FROM tile_tags
+        WHERE tile_id = :id
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('id', value=tile_id, type_=Integer),
+    )
+    res = get_connection().execute(cmd)
+
+    for row in res:
+        output = {
+            'tile_id': row['tile_id'],
+            'solid': row['solid']
+        }
+    return output
+
+
+def get_tiles_by_game(game):
+    cmd = text(
+        """SELECT * FROM tiles
+        WHERE game = :g
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('g', value=game, type_=String),
+    )
+    res = get_connection().execute(cmd)
+
+    output = []
+    for row in res:
+        output.append({
+            'tile_id': row['tile_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'data': row['data'],
+        })
+    return output
+
+
+def get_sprites_by_game(game):
+    cmd = text(
+        """SELECT * FROM sprites
+        WHERE game = :g
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('g', value=game, type_=String),
+    )
+    res = get_connection().execute(cmd)
+
+    output = []
+    for row in res:
+        output.append({
+            'sprite_id': row['sprite_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'data': row['data'],
+        })
     return output
 
 
@@ -217,11 +475,8 @@ def drop_all():
         conn.execute(cmd)
 
 
-def get_connection(dev=None):
-    if dev is not None:
-        url = dev
-    else:
-        url = current_app.config['SQLALCHEMY_DATABASE_URI']
+def get_connection():
+    url = current_app.config['SQLALCHEMY_DATABASE_URI']
     engine = create_engine(url, echo=True)
     return engine
 
@@ -264,11 +519,21 @@ def destroy_db_command():
     click.echo("Destroyed the database.")
 
 
-@click.command("test-db")
+@click.command("ingest-db")
 @with_appcontext
-def test_db_command():
-    """test insert."""
-    insert_screenshot('test_game', 256, 224)
+def ingest_db_command():
+    """ingest insert."""
+    ingest_filesystem_data()
+    click.echo("Inserted the database.")
+
+
+@click.command("reset-db")
+@with_appcontext
+def reset_db_command():
+    """ingest insert."""
+    drop_all()
+    init_db()
+    ingest_filesystem_data()
     click.echo("Inserted the database.")
 
 
@@ -279,4 +544,5 @@ def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
     app.cli.add_command(destroy_db_command)
-    app.cli.add_command(test_db_command)
+    app.cli.add_command(ingest_db_command)
+    app.cli.add_command(reset_db_command)
