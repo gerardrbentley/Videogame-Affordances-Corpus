@@ -1,13 +1,15 @@
 import os
 import logging
-
+from dotenv import load_dotenv
 from flask import Flask
 
 from flask import render_template
 from flask import send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+import db
+import tagger
 
-
+load_dotenv()
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True, static_url_path='')
@@ -45,13 +47,14 @@ def create_app(test_config=None):
         return send_from_directory('templates/js/', 'testscript.js')
 
     #TODO: get from env variables for docker
-    POSTGRES_URL = 'localhost'
-    POSTGRES_USER = 'gbkh2015'
-    POSTGRES_PASS = 'dev'
-    POSTGRES_DB = 'affordances_db'
+    POSTGRES_URL = os.getenv('POSTGRES_URL')
+    POSTGRES_USER = os.getenv('POSTGRES_USER')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_DB = os.getenv('POSTGRES_DB')
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
-    DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
-        POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
+    DB_URL = 'postgresql+psycopg2://{}:{}@{}:{}/{}'.format(
+        POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_URL, POSTGRES_PORT, POSTGRES_DB)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
     # silence the deprecation warning
@@ -59,12 +62,12 @@ def create_app(test_config=None):
 
     # TODO: database connection / fake
     # register the database commands
-    from vgac_tagging import db
 
-    db.init_app(app)
+
+    #db.init_app(app)
 
     # apply the blueprints to the app
-    from vgac_tagging import tagger
+
 
     app.register_blueprint(tagger.bp)
     app.add_url_rule("/", endpoint="index")

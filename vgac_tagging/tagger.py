@@ -14,8 +14,8 @@ import os
 import base64
 import json
 
-from vgac_tagging import db
-import vgac_tagging.image_processing as P
+import db
+import image_processing as P
 
 
 # from flaskr.auth import login_required
@@ -44,7 +44,7 @@ def encode_tile_from_dict(entry):
 
 @bp.route("/json")
 def test_json():
-    with open('vgac_tagging/templates/example_data.json') as file:
+    with open('templates/example_data.json') as file:
         data = json.load(file)
     return data
 
