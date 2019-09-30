@@ -15,7 +15,7 @@
 <body>
     <div>
         
-        <link href="static/style.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
     </div>
 
     <div id="title">
@@ -23,56 +23,84 @@
     </div> 
 
     <div class="grid">
-        <div id=solid>  Solid
-            <img src="solid.png" width="256" height="224">
+
+        <div id="solid_container" class = "container">  
+            <div class = "name_af">Solid</div>
+            <img id = "solid" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_solid" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
+        </div>
+        <div id="movable_container" class = "container">  
+            <div class = "name_af">Movable</div>
+            <img id = "movable" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_movable" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
+        </div>
+        <div id="destroyable_container" class = "container">  
+            <div class = "name_af">Destroyable</div>
+            <img id = "destroyable" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_destroyable" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
+        </div>
+        <div id="dangerous_container" class = "container">  
+            <div class = "name_af">Dangerous</div>
+            <img id = "dangerous" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_dangerous" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
+        </div>
+        <div id="gettable_container" class = "container">  
+            <div class = "name_af">Gettable</div>
+            <img id = "gettable" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_gettable" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
         </div>
 
-        <div id=moveable> Moveable
-            <img src="moveable.png" width="256" height="224">
+        <div id="portal_container" class = "container">  
+            <div class = "name_af">Portal</div>
+            <img id = "portal" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_portal" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
+        </div>
+        <div id="usable_container" class = "container">  
+            <div class = "name_af">Usable</div>
+            <img id = "usable" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_usable" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
         </div>
 
-        <div id=destroyable> Destroyable
-            <img src="destroyable.png" width="256" height="224">
+        <div id="changeable_container" class = "container">  
+            <div class = "name_af">Changeable</div>
+            <img id = "changeable" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_changeable" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
         </div>
-
-        <div id=dangerous> Dangerous
-            <img src="dangerous.png" width="256" height="224">
+        <div id="ui_container" class = "container">  
+            <div class = "name_af">UI</div>
+            <img id = "ui" src="screenshot.png" width="256" height="224">   
+            <canvas id = "myCanvas_ui" width="256" height="224"
+                cssstyle="border:1px solid #000000">
+            </canvas>
         </div>
-
-        <div id=gettable> Gettable
-            <img src="gettable.png" width="256" height="224">
-        </div>
-
-        <div id=portal> Portal
-            <img src="portal.png" width="256" height="224">
-        </div>
-
-        <div id=usable> Usable
-            <img src="usable.png" width="256" height="224">
-        </div>
-
-        <div id=changeable> Changeable
-            <img src="changeable.png" width="256" height="224">
-        </div>
-
-        <div id =ui> Ui
-            <img src="ui.png" width="256" height="224">
-        </div>
+        
     </div>
     
-    <div class ="container">
-        <div class= "screenshot">
+    <div class ="container" id="screen_preview">
             <img src="screenshot.png" width="256" height="224"> 
-        </div>
         <canvas id = "myCanvas" width="256" height="224"
-            style="border:1px solid #000000">
+            cssstyle="border:1px solid #000000">
         </canvas>
     </div>
     
     <div id ="tagging">
             <img id = tile src="tagging.png" width="132" height="132">
-            
-
     </div>
 
     <div id ="gridActions">
@@ -85,6 +113,20 @@
          <p> instructions, explains black/white/grey & what each of the affordances mean </p>
     </div>
 
+    <div class="checkBoxes">
+        <input type = "checkbox" id = "cbQ" />
+        <input type = "checkbox" id = "cbW" />
+        <input type = "checkbox" id = "cbE" />
+        <input type = "checkbox" id = "cbA" />
+        <input type = "checkbox" id = "cbS" />
+        <input type = "checkbox" id = "cbD" />
+        <input type = "checkbox" id = "cbZ" />
+        <input type = "checkbox" id = "cbX" />
+        <input type = "checkbox" id = "cbC" />
+    </div>
+
+    <button onclick="button_Q()">Solid</button>
+    <button onclick="button_W()">Movable</button>
     <script src="js/scripts.js"></script>
 </body>
 
