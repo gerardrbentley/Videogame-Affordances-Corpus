@@ -29,7 +29,11 @@
     height: 100%;
 
 }
-
+.container .myCanvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
 
 #tagging img{
     position: absolute;
