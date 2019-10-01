@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 
 import os
 import argparse
-from skimage.measure import compare_ssim as ssim
-
-GRID_SIZE = 8
+import glob
 
 
 def mse(a, b):
@@ -55,38 +53,38 @@ def is_unique_by_mse(new_tile, prev_tiles):
 
     return True
 
+#
+# def is_unique_in_list(new_tile, prev_tiles):
+#     for old_tile in prev_tiles:
+#         similarity = ssim(new_tile, old_tile, multichannel=True)
+#         # print('SSIM: {:.2f}'.format(similarity))
+#         if similarity > 0.98:
+#             return False
+#         if similarity > 0.9:
+#             pass
+#             # print('Sim > 0.9: {:.2f}'.format(similarity))
+#     return True
 
-def is_unique_in_list(new_tile, prev_tiles):
-    for old_tile in prev_tiles:
-        similarity = ssim(new_tile, old_tile, multichannel=True)
-        # print('SSIM: {:.2f}'.format(similarity))
-        if similarity > 0.98:
-            return False
-        if similarity > 0.9:
-            pass
-            # print('Sim > 0.9: {:.2f}'.format(similarity))
-    return True
 
-
-def get_unique_tiles(image, offset_y=0, offset_x=0, prev_best=10000):
+def get_unique_tiles(image, offset_y=0, offset_x=0, prev_best=10000, grid_size=16):
     h, w, c = image.shape
-    print(offset_y, h-GRID_SIZE+offset_y, offset_x, w-GRID_SIZE+offset_x)
+    # print(offset_y, h-grid_size+offset_y, offset_x, w-grid_size+offset_x)
     cropped_img = np.copy(
-        image)[offset_y:h-GRID_SIZE+offset_y, offset_x:w-GRID_SIZE+offset_x]
-    rows = (h-GRID_SIZE)//GRID_SIZE
-    cols = (w-GRID_SIZE)//GRID_SIZE
-    print('Testing, grid divisions: {} rows, {} cols. offset ({}, {})'.format(
-        rows, cols, offset_y, offset_x))
+        image)[offset_y:h-grid_size+offset_y, offset_x:w-grid_size+offset_x]
+    rows = (h-grid_size)//grid_size
+    cols = (w-grid_size)//grid_size
+    # print('Testing, grid divisions: {} rows, {} cols. offset ({}, {})'.format(
+    #     rows, cols, offset_y, offset_x))
     unique_tiles = []
     num_tiles = 0
     num_dupes = 0
     for r in range(rows):
         for c in range(cols):
             num_tiles += 1
-            r_idx = r*GRID_SIZE
-            c_idx = c*GRID_SIZE
+            r_idx = r*grid_size
+            c_idx = c*grid_size
             curr_tile = np.copy(cropped_img)[
-                                r_idx:r_idx+GRID_SIZE, c_idx:c_idx+GRID_SIZE]
+                                r_idx:r_idx+grid_size, c_idx:c_idx+grid_size]
             if is_unique_by_mse(curr_tile, unique_tiles):
                 unique_tiles.append(curr_tile)
             else:
@@ -96,9 +94,56 @@ def get_unique_tiles(image, offset_y=0, offset_x=0, prev_best=10000):
                 print('EARLY FAIL {} unique / {} dupe tiles == {} / {} total'.format(len(unique_tiles),
                                                                                      num_dupes, len(unique_tiles)+num_dupes, num_tiles))
                 return unique_tiles, cropped_img
-    print('{} unique / {} dupe tiles == {} / {} total'.format(len(unique_tiles),
-                                                              num_dupes, len(unique_tiles)+num_dupes, num_tiles))
+    # print('{} unique / {} dupe tiles == {} / {} total'.format(len(unique_tiles),
+                # num_dupes, len(unique_tiles)+num_dupes, num_tiles))
     return unique_tiles, cropped_img
+
+
+def predict_all_offsets(args):
+    game_image_files = glob.glob(os.path.join(
+        args.data_path, args.game_dir, 'img', '*.png'))
+    print(len(game_image_files))
+    for file in game_image_files:
+        print('Offsets for file: {}'.format(file))
+        results = best_k_offsets(args, file, 5)
+
+
+def best_k_offsets(args, file, num):
+    orig_image = cv2.imread(file, cv2.IMREAD_UNCHANGED)
+    if orig_image.shape[2] == 4:
+        orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGRA2BGR)
+    orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
+    if args.ui_position == 'top':
+        orig_image = orig_image[args.ui_height:, :, :]
+    else:
+        h = orig_image.shape[0]
+        orig_image = orig_image[:h-args.ui_height, :, :]
+
+    # print('orig image shape: {}'.format(orig_image.shape))
+    unique_tiles_per_offset = {}
+    num_tiles_per_offset = {}
+    min_tile_num = 10000
+    min_tile_offset = (-1, -1)
+    min_tile_set = None
+    min_tile_image = None
+
+    potential_offsets = [(y, x) for x in range(0, args.grid_size)
+                         for y in range(0, args.grid_size)]
+    for (y, x) in potential_offsets:
+        unique_tiles, cropped_img = get_unique_tiles(
+            orig_image, y, x, grid_size=args.grid_size, prev_best=min_tile_num)
+
+        num_tiles_per_offset['({},{})'.format(y, x)] = len(unique_tiles)
+        unique_tiles_per_offset['({},{})'.format(y, x)] = (unique_tiles)
+
+    sorted_dict = [(k, num_tiles_per_offset[k])
+                   for k in sorted(num_tiles_per_offset, key=num_tiles_per_offset.get)]
+    for i, (k, v) in enumerate(sorted_dict):
+        if i >= num:
+            break
+        print('Rank {} offset: {}, unique tiles: {}'.format(
+            i+1, k, v))
+    return 1
 
 
 def predict_offset(args):
@@ -121,8 +166,8 @@ def predict_offset(args):
     min_tile_set = None
     min_tile_image = None
 
-    potential_offsets = [(y, x) for x in range(0, GRID_SIZE)
-                         for y in range(0, GRID_SIZE)]
+    potential_offsets = [(y, x) for x in range(0, args.grid_size)
+                         for y in range(0, args.grid_size)]
     for (y, x) in potential_offsets:
         unique_tiles, cropped_img = get_unique_tiles(
             orig_image, y, x, prev_best=min_tile_num)
@@ -137,17 +182,17 @@ def predict_offset(args):
     print('BEST offset: {}, unique tiles: {}'.format(
         min_tile_offset, min_tile_num))
     #Add grid to orig:
-    y = GRID_SIZE + min_tile_offset[0]
-    x = GRID_SIZE + min_tile_offset[1]
+    y = args.grid_size + min_tile_offset[0]
+    x = args.grid_size + min_tile_offset[1]
     while x < orig_image.shape[1]:
         orig_image = cv2.line(
             orig_image, (x, 0), (x, orig_image.shape[0]), color=(255, 0, 0), thickness=1)
-        x += GRID_SIZE
+        x += args.grid_size
 
     while y < orig_image.shape[0]:
         orig_image = cv2.line(
             orig_image, (0, y), (orig_image.shape[1], y), color=(255, 0, 0), thickness=1)
-        y += GRID_SIZE
+        y += args.grid_size
 
     show_images(min_tile_set, cols=8)
     plt.figure()
@@ -163,14 +208,16 @@ def parse_args():
 
     parser.add_argument('--data-path', type=str, default='../../affordances_corpus/games',
                         help='path to games folder')
-    parser.add_argument('--game-dir', type=str, default='sm3',
+    parser.add_argument('--game-dir', type=str, default='loz',
                         help='game directory name')
     parser.add_argument('--file-num', type=int, default=1,
                         help='image num to tag')
+    parser.add_argument('--grid-size', type=int,
+                        default=16, help='grid square size')
     parser.add_argument('--ui-height', type=int,
-                        default=40, help='ignore this range')
+                        default=56, help='ignore this range')
     parser.add_argument('--ui-position', type=str,
-                        default='bot', help='ui top or bot')
+                        default='top', help='ui top or bot')
 
     args = parser.parse_args()
 
@@ -179,4 +226,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    predict_offset(args)
+    predict_all_offsets(args)

@@ -42,7 +42,7 @@ def create_app(test_config=None):
 
     @app.route("/")
     def test_serve():
-        return render_template('served.html')
+        return render_template('homepage.html')
 
     @app.route("/testjs")
     def static_js():

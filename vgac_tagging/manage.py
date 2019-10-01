@@ -2,7 +2,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 
-from db import drop_all, init_db, get_connection
+from db import drop_all, init_db, get_connection, ingest_filesystem_data
 from init import create_app
 
 # sets up the app
@@ -26,6 +26,13 @@ def runserver():
 def runworker():
     app.run(debug=True)
 
+
+@manager.command
+def ingest_files():
+    drop_all()
+    init_db()
+    ingest_filesystem_data('../../affordances_corpus/games/')
+
 #@manager.command
 #def check_db():
 #    try:
@@ -34,7 +41,8 @@ def runworker():
 #    except OperationalError:
 #        return False
 
-#@manager.command
+
+@manager.command
 def recreate_db():
     """
     Recreates a database. This should only be used once
@@ -45,7 +53,6 @@ def recreate_db():
     drop_all()
     init_db()
     get_connection()
-
 
 
 if __name__ == "__main__":
