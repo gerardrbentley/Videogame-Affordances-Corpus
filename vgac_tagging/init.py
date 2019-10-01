@@ -10,6 +10,8 @@ import db
 import tagger
 
 load_dotenv()
+
+
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True, static_url_path='')
@@ -56,6 +58,14 @@ def create_app(test_config=None):
     DB_URL = 'postgresql+psycopg2://{}:{}@{}:{}/{}'.format(
         POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_URL, POSTGRES_PORT, POSTGRES_DB)
 
+    POSTGRES_URL = 'localhost'
+    POSTGRES_USER = 'gbkh2015'
+    POSTGRES_PASS = 'dev'
+    POSTGRES_DB = 'affordances_db'
+
+    DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
+        POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
+
     app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
     # silence the deprecation warning
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -63,11 +73,9 @@ def create_app(test_config=None):
     # TODO: database connection / fake
     # register the database commands
 
-
     #db.init_app(app)
 
     # apply the blueprints to the app
-
 
     app.register_blueprint(tagger.bp)
     app.add_url_rule("/", endpoint="index")
