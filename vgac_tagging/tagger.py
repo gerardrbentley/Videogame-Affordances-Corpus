@@ -69,14 +69,17 @@ def get_image_to_tag():
     tagger_id = 'developer'
 
     #TODO: do this in database operations
-    already_tagged = True
-    while already_tagged:
-        logger.debug('Fetching image for tagger: {}'.format(tagger_id))
-        #TODO: randomize
-        # image_data = db.get_random_screenshot()
-        image_data = db.get_screenshot_by_id(25)
-        image_id = image_data['image_id']
-        already_tagged = db.check_if_already_tagged(image_id, tagger_id)
+    # already_tagged = True
+    # while already_tagged:
+    #     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
+    #     #TODO: randomize
+    #     # image_data = db.get_random_screenshot()
+    #     image_data = db.get_screenshot_by_id(25)
+    #     image_id = image_data['image_id']
+    #     already_tagged = db.check_if_already_tagged(image_id, tagger_id)
+    logger.debug('Fetching image for tagger: {}'.format(tagger_id))
+    image_data = db.get_untagged_screenshot(tagger_id)
+    image_id = image_data['image_id']
 
     game = image_data['game']
     # width = image_data['width']

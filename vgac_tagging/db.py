@@ -29,6 +29,9 @@ def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
             os.path.join(dir, game, 'sprite', '*.png'))
         image_files.append(
             (game, per_game_files, game_tile_files, game_sprite_files))
+        with open('test_log.txt', 'a') as file:
+            file.write('Found {} screenshots, {} tiles, {} sprites for game: {}\n'.format(
+                len(per_game_files), len(game_tile_files), len(game_sprite_files), game))
     return image_files
 
 
@@ -56,12 +59,19 @@ def affords_from_csv_file(file, file_num_str):
 
 def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
-        ingest_screenshot_files(screenshot_files, game)
-        ingest_tile_files(tile_files, game)
-        ingest_sprite_files(sprite_files, game)
+        with open('test_log.txt', 'a') as file:
+            file.write('Ingesting for game: {}\n'.format(game))
+        ingest_screenshot_files(screenshot_files, game, dir)
+        ingest_tile_files(tile_files, game, dir)
+        # ingest_sprite_files(sprite_files, game), dir
 
 
-def ingest_screenshot_files(files, game):
+def ingest_screenshot_files(files, game, dir):
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingesting {} screenshots for game: {}\n'.format(
+            len(files), game))
+    ctr = 0
+    tag_ctr = 0
     for screen_file in files:
         cv, encoded_png = P.load_image(screen_file)
         h, w, c = cv.shape
@@ -71,6 +81,11 @@ def ingest_screenshot_files(files, game):
         label = P.load_label(screen_file)
         if label is not None:
             ingest_screenshot_tags(label, image_id)
+            tag_ctr += 1
+        ctr += 1
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingested {} screenshots, {} tags for game: {}\n'.format(
+            ctr, tag_ctr, game))
 
 
 def ingest_screenshot_tags(stacked_array, image_id):
@@ -83,7 +98,12 @@ def ingest_screenshot_tags(stacked_array, image_id):
     pass
 
 
-def ingest_tile_files(tile_files, game):
+def ingest_tile_files(tile_files, game, dir):
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingesting {} tiles for game: {}\n'.format(
+            len(tile_files), game))
+    ctr = 0
+    tag_ctr = 0
     for tile_file in tile_files:
         file_name = os.path.split(tile_file)[1]
         file_num_str = os.path.splitext(file_name)[0]
@@ -98,6 +118,11 @@ def ingest_tile_files(tile_files, game):
         tile_affords = affords_from_csv_file(csv_file, file_num_str)
         if tile_affords is not None:
             ingest_tile_tags(tile_affords, tile_id)
+            tag_ctr += 1
+        ctr += 1
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
+            ctr, tag_ctr, game))
 
 
 def ingest_tile_tags(affords, tile_id):
@@ -107,7 +132,12 @@ def ingest_tile_tags(affords, tile_id):
     pass
 
 
-def ingest_sprite_files(sprite_files, game):
+def ingest_sprite_files(sprite_files, game, dir):
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingesting {} sprites for game: {}\n'.format(
+            len(sprite_files), game))
+    ctr = 0
+    tag_ctr = 0
     for sprite_file in sprite_files:
         file_name = os.path.split(sprite_file)[1]
         file_num_str = os.path.splitext(file_name)[0]
@@ -123,6 +153,11 @@ def ingest_sprite_files(sprite_files, game):
         sprite_affords = affords_from_csv_file(csv_file, file_num_str)
         if sprite_affords is not None:
             ingest_sprite_tags(sprite_affords, sprite_id)
+            tag_ctr += 1
+        ctr += 1
+    with open('test_log.txt', 'a') as file:
+        file.write('Ingested {} sprites, {} tags for game: {}\n'.format(
+            ctr, tag_ctr, game))
 
 
 def ingest_sprite_tags(affords, sprite_id):
@@ -284,6 +319,34 @@ def get_random_screenshot():
     return output
 
 
+def get_untagged_screenshot(tagger_id='default'):
+    cmd = text(
+        """SELECT * FROM screenshots
+        WHERE NOT EXISTS
+            (SELECT 1
+            FROM screenshot_tags
+            WHERE screenshots.image_id = screenshot_tags.image_id AND screenshot_tags.tagger_id = :t)
+        ORDER BY random()
+        LIMIT 1;
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('t', value=tagger_id, type_=String)
+    )
+
+    res = get_connection().execute(cmd)
+
+    for row in res:
+        output = {
+            'image_id': row['image_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'data': row['data'],
+        }
+    return output
+
+
 def get_screenshot_by_id(id):
     cmd = text(
         """SELECT * FROM screenshots
@@ -424,6 +487,8 @@ def init_db():
         game VARCHAR (50) NOT NULL,
         width integer,
         height integer,
+        grid_offset_x integer,
+        grid_offset_y integer,
         created_on TIMESTAMP NOT NULL,
         data bytea
         )"""
@@ -432,7 +497,7 @@ def init_db():
         """CREATE TABLE IF NOT EXISTS screenshot_tags(
         image_id integer NOT NULL,
         affordance integer NOT NULL,
-        tagger_id VARCHAR(16) NOT NULL,
+        tagger_id VARCHAR(50) NOT NULL,
         created_on TIMESTAMP NOT NULL,
         tags bytea,
         PRIMARY KEY (image_id, affordance, tagger_id),
@@ -456,7 +521,7 @@ def init_db():
         """CREATE TABLE IF NOT EXISTS tile_tags(
         tile_id integer NOT NULL,
         created_on TIMESTAMP NOT NULL,
-        tagger_id VARCHAR(16) NOT NULL,
+        tagger_id VARCHAR(50) NOT NULL,
         solid boolean NOT NULL,
         movable boolean NOT NULL,
         destroyable boolean NOT NULL,
@@ -486,7 +551,7 @@ def init_db():
         """CREATE TABLE IF NOT EXISTS sprite_tags(
         sprite_id integer NOT NULL,
         created_on TIMESTAMP NOT NULL,
-        tagger_id VARCHAR(16) NOT NULL,
+        tagger_id VARCHAR(50) NOT NULL,
         solid boolean NOT NULL,
         movable boolean NOT NULL,
         destroyable boolean NOT NULL,
