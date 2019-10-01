@@ -58,13 +58,13 @@ def create_app(test_config=None):
     DB_URL = 'postgresql+psycopg2://{}:{}@{}:{}/{}'.format(
         POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_URL, POSTGRES_PORT, POSTGRES_DB)
 
-    POSTGRES_URL = 'localhost'
-    POSTGRES_USER = 'gbkh2015'
-    POSTGRES_PASS = 'dev'
-    POSTGRES_DB = 'affordances_db'
-
-    DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
-        POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
+    # POSTGRES_URL = 'localhost'
+    # POSTGRES_USER = 'gbkh2015'
+    # POSTGRES_PASS = 'dev'
+    # POSTGRES_DB = 'affordances_db'
+    #
+    # DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
+    #     POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
     # silence the deprecation warning
