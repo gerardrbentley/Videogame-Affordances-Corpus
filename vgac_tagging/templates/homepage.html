@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Video Game Affordanes</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function(){
+
+      $("#fetchButtonID").click(function(){
+        $.ajax({
+          url: "http://localhost:5000/get_image",
+          type: "get",
+          dataType: "json",
+          contentType: "application/json",
+          success: function (data) {
+            console.log(data)
+            var myData = data
+            console.log('Successful fetch')
+          }
+
+          // var myData = {
+          //   'output': {
+          //     'image': 'longimgdatastringverylongtxt',
+          //     'image_id': 123,
+          //     'tiles': {
+          //       'tile_0':{
+          //         'locations': {
+          //           'location_0': {
+          //             'x':0,
+          //             'y':16
+          //           },
+          //           'location_1': {
+          //             'x':32,
+          //             'y':56
+          //           }
+          //         },
+          //         'tile_data': 'somewhatlongdatastring',
+          //         'tile_id': 456
+          //       }
+          //     }
+          //   }
+          // }
+        });
+      });
+
+      $("#submitButtonID").click(function(){
+        var TagData = {
+          "tagger_id":"TestTagger",
+          "image_id":47,
+          "tiles":{
+            "tile_0": {"tile_id":1, "solid":1, "movable":0, "destroyable":0,
+              "dangerous":0, "gettable":1, "portal":0,
+              "usable":1, "changeable":0, "ui":1},
+            "tile_1": {"tile_id":47, "solid":0, "movable":0, "destroyable":1,
+              "all_nine_affordances":1}
+          },
+          "tag_images":{
+            "solid":"imgdatastringxyzverylongdata",
+            "movable":"otherimagedatastringalsolong",
+            "destroyable":"nineoftheselongdatastrings"
+          },
+        };
+
+        $.ajax({
+          url: "http://localhost:5000/submit_tags",
+          type: "post",
+          data: JSON.stringify(TagData),
+          contentType: "application/json",
+          success: function (data) {
+            alert('Posted data to /submit_tags')
+          }
+        });
+      });
+    });
+    </script>
+</head>
+
+<body>
+
+    <div id="title">
+        <h1>Video Game Affordanes</h1>
+    </div>
+
+    <form>
+      Tagger_id: <input type="text" name="tagger_id" value={{tagger_id}}><br>
+    </form>
+
+    <button id="fetchButtonID">Send HTTP GET</button>
+    <button id="submitButtonID">Send HTTP POST</button>
+</body>
+
+</html>

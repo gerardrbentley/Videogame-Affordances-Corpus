@@ -13,15 +13,8 @@ from flask.cli import with_appcontext
 from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary, Boolean
 from sqlalchemy.sql import text
 
-import vgac_tagging.image_processing as P
+import image_processing as P
 
-POSTGRES_URL = 'localhost'
-POSTGRES_USER = 'gbkh2015'
-POSTGRES_PASS = 'dev'
-POSTGRES_DB = 'affordances_db'
-
-DB_URL = 'postgresql+psycopg2://{}:{}@{}/{}'.format(
-    POSTGRES_USER, POSTGRES_PASS, POSTGRES_URL, POSTGRES_DB)
 
 ''' Lists all png images with file structure DIR/GAME_NAME/img/0.png'''
 
@@ -63,52 +56,21 @@ def affords_from_csv_file(file, file_num_str):
 
 def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
-        for screen_file in screenshot_files:
-            # print('loading f: ', screen_file, ' FROM ', game)
-            cv, encoded_png = P.load_image(screen_file)
-            h, w, c = cv.shape
-            # print('w: ', w, 'h: ', h)
-            data = encoded_png.tobytes()
-            # print(type(data))
-            # print(cv.dtype)
-            result = insert_screenshot(game, int(w), int(h), data)
-            image_id = result['image_id']
-            label = P.load_label(screen_file)
-            if label is not None:
-                ingest_screenshot_tags(label, image_id)
-            # print('INSERTED')
-            # return None
+        ingest_screenshot_files(screenshot_files, game)
+        ingest_tile_files(tile_files, game)
+        ingest_sprite_files(sprite_files, game)
 
-        for tile_file in tile_files:
-            file_name = os.path.split(tile_file)[1]
-            file_num_str = os.path.splitext(file_name)[0]
 
-            cv, encoded_png = P.load_image(tile_file)
-            h, w, c = cv.shape
-            data = encoded_png.tobytes()
-            result = insert_tile(game, int(w), int(h), data)
-            tile_id = result['tile_id']
-
-            csv_file = os.path.join(dir, game, 'tile_affordances.csv')
-            tile_affords = affords_from_csv_file(csv_file, file_num_str)
-            if tile_affords is not None:
-                ingest_tile_tags(tile_affords, tile_id)
-
-        for sprite_file in sprite_files:
-            file_name = os.path.split(sprite_file)[1]
-            file_num_str = os.path.splitext(file_name)[0]
-
-            #4 channel with alpha
-            cv, encoded_png = P.load_sprite(sprite_file)
-            h, w, c = cv.shape
-            data = encoded_png.tobytes()
-            result = insert_sprite(game, int(w), int(h), data)
-            sprite_id = result['sprite_id']
-
-            csv_file = os.path.join(dir, game, 'sprite_affordances.csv')
-            sprite_affords = affords_from_csv_file(csv_file, file_num_str)
-            if sprite_affords is not None:
-                ingest_sprite_tags(sprite_affords, sprite_id)
+def ingest_screenshot_files(files, game):
+    for screen_file in files:
+        cv, encoded_png = P.load_image(screen_file)
+        h, w, c = cv.shape
+        data = encoded_png.tobytes()
+        result = insert_screenshot(game, int(w), int(h), data)
+        image_id = result['image_id']
+        label = P.load_label(screen_file)
+        if label is not None:
+            ingest_screenshot_tags(label, image_id)
 
 
 def ingest_screenshot_tags(stacked_array, image_id):
@@ -121,11 +83,46 @@ def ingest_screenshot_tags(stacked_array, image_id):
     pass
 
 
+def ingest_tile_files(tile_files, game):
+    for tile_file in tile_files:
+        file_name = os.path.split(tile_file)[1]
+        file_num_str = os.path.splitext(file_name)[0]
+
+        cv, encoded_png = P.load_image(tile_file)
+        h, w, c = cv.shape
+        data = encoded_png.tobytes()
+        result = insert_tile(game, int(w), int(h), data)
+        tile_id = result['tile_id']
+
+        csv_file = os.path.join(dir, game, 'tile_affordances.csv')
+        tile_affords = affords_from_csv_file(csv_file, file_num_str)
+        if tile_affords is not None:
+            ingest_tile_tags(tile_affords, tile_id)
+
+
 def ingest_tile_tags(affords, tile_id):
     tagger = 'ingested'
     insert_tile_tag(tile_id, tagger, affords[0], affords[1], affords[2],
                     affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
     pass
+
+
+def ingest_sprite_files(sprite_files, game):
+    for sprite_file in sprite_files:
+        file_name = os.path.split(sprite_file)[1]
+        file_num_str = os.path.splitext(file_name)[0]
+
+        #4 channel with alpha
+        cv, encoded_png = P.load_sprite(sprite_file)
+        h, w, c = cv.shape
+        data = encoded_png.tobytes()
+        result = insert_sprite(game, int(w), int(h), data)
+        sprite_id = result['sprite_id']
+
+        csv_file = os.path.join(dir, game, 'sprite_affordances.csv')
+        sprite_affords = affords_from_csv_file(csv_file, file_num_str)
+        if sprite_affords is not None:
+            ingest_sprite_tags(sprite_affords, sprite_id)
 
 
 def ingest_sprite_tags(affords, sprite_id):
@@ -268,11 +265,12 @@ def insert_sprite_tag(sprite_id, tagger, solid, movable, destroyable, dangerous,
 
 def get_random_screenshot():
     cmd = text(
-        """SELECT * FROM screenshots OFFSET
-        floor(random() * (SELECT COUNT (*) FROM screenshots))
+        """SELECT * FROM screenshots
+        OFFSET floor(random() * (SELECT COUNT (*) FROM screenshots))
         LIMIT 1;
         """
     )
+
     res = get_connection().execute(cmd)
 
     for row in res:
@@ -289,7 +287,7 @@ def get_random_screenshot():
 def get_screenshot_by_id(id):
     cmd = text(
         """SELECT * FROM screenshots
-        WHERE image_id = :id
+        WHERE image_id = :id;
         """
     )
     cmd = cmd.bindparams(
@@ -308,10 +306,48 @@ def get_screenshot_by_id(id):
     return output
 
 
+def check_if_already_tagged(image_id, tagger_id):
+    cmd = text(
+        """SELECT affordance FROM screenshot_tags
+        WHERE image_id = :id AND tagger_id = :t;
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('id', value=image_id, type_=Integer),
+        bindparam('t', value=tagger_id, type_=String)
+    )
+    res = get_connection().execute(cmd)
+    for row in res:
+        return True
+    return False
+
+
+def get_screenshot_affordances(id):
+    cmd = text(
+        """SELECT image_id, affordance, tags, tagger_id FROM screenshot_tags
+        WHERE image_id = :id;
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('id', value=id, type_=Integer),
+    )
+
+    res = get_connection().execute(cmd)
+    output = []
+    for row in res:
+        output.append({
+            'image_id': row['image_id'],
+            'affordance': row['affordance'],
+            'tags': row['tags'],
+            'tagger_id': row['tagger_id'],
+        })
+    return output
+
+
 def get_tile_affordances(tile_id):
     cmd = text(
         """SELECT * FROM tile_tags
-        WHERE tile_id = :id
+        WHERE tile_id = :id;
         """
     )
     cmd = cmd.bindparams(
@@ -322,7 +358,15 @@ def get_tile_affordances(tile_id):
     for row in res:
         output = {
             'tile_id': row['tile_id'],
-            'solid': row['solid']
+            'solid': row['solid'],
+            "movable": row['movable'],
+            "destroyable": row['destroyable'],
+            "dangerous": row['dangerous'],
+            "gettable": row['gettable'],
+            "portal": row['portal'],
+            "usable": row['usable'],
+            "changeable": row['changeable'],
+            "ui": row['ui']
         }
     return output
 
@@ -330,7 +374,7 @@ def get_tile_affordances(tile_id):
 def get_tiles_by_game(game):
     cmd = text(
         """SELECT * FROM tiles
-        WHERE game = :g
+        WHERE game = :g;
         """
     )
     cmd = cmd.bindparams(
@@ -353,7 +397,7 @@ def get_tiles_by_game(game):
 def get_sprites_by_game(game):
     cmd = text(
         """SELECT * FROM sprites
-        WHERE game = :g
+        WHERE game = :g;
         """
     )
     cmd = cmd.bindparams(

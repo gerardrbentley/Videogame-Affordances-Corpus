@@ -14,7 +14,7 @@ import os
 import base64
 import json
 
-import db
+import db as db
 import image_processing as P
 
 
@@ -55,87 +55,112 @@ def test_insert():
     return 'INSERTED'
 
 
-@bp.route("/image")
+@bp.route('/home')
+def homepage():
+    tagger_id = 'test_tagger'
+    return render_template('homepage.html', tagger_id=tagger_id)
+
+
+@bp.route("/get_image")
 def get_image_to_tag():
-    """Show an image and thumbnail to tag."""
-    image_file = os.path.join(
-        '..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')
+    """Return random image, list of unique tiles and locations"""
 
-    image_cv, image = P.load_image(image_file)
-    image_data = b64_string(image)
-    logger.debug('Image encoded')
+    #TODO: get tagger_id from cookie or POST
+    tagger_id = 'developer'
 
-    unique_tiles = P.find_unique_tiles(image_cv, ui_height=56)
-    map_dict(encode_tile_from_dict, unique_tiles)
-    logger.debug('Tiles encoded')
+    #TODO: do this in database operations
+    already_tagged = True
+    while already_tagged:
+        logger.debug('Fetching image for tagger: {}'.format(tagger_id))
+        #TODO: randomize
+        # image_data = db.get_random_screenshot()
+        image_data = db.get_screenshot_by_id(25)
+        image_id = image_data['image_id']
+        already_tagged = db.check_if_already_tagged(image_id, tagger_id)
 
-    tags = P.load_label(image_file)
-    tag_images = P.numpy_to_images(tags)
-    map_dict(b64_string, tag_images)
+    game = image_data['game']
+    # width = image_data['width']
+    # height = image_data['height']
+    data = image_data['data']
+    logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
+
+    orig_cv, encoded_img = P.from_data_to_cv(data)
+    image_string = b64_string(encoded_img)
+    logger.debug('Image stringified')
+
+    tiles_to_tag = {}
+    unique_tiles = P.find_unique_tiles(orig_cv, game)
+    logger.debug("LEN UNIQUE TILES: {}".format(len(unique_tiles)))
+    tiles_to_tag = get_tile_ids(
+        unique_tiles, game)
+    logger.debug("LEN TILES: {}".format(len(tiles_to_tag)))
+
+    logger.debug('Tiles stringified')
+
+    # tags = P.load_label(image_file)
+    # tag_images = P.numpy_to_images(tags)
+    # map_dict(b64_string, tag_images)
     output = {
-        'image': image_data,
-        'tiles': unique_tiles,
-        'tag_images': tag_images
+        'image': image_string,
+        'image_id': image_id,
+        'tiles': tiles_to_tag,
     }
     logger.debug('base route ok')
     return jsonify({'output': output})
 
 
-@bp.route("/image/<string:game>/<string:num>")
-def get_specific_image(game, num):
-    """Show an image and thumbnail to tag."""
-    image_file = os.path.join(
-        BASE_DIR, game, 'img', '{}.png'.format(num))
+def get_tile_ids(unique_tiles, game):
+    known_game_tiles = db.get_tiles_by_game(game)
 
-    image_cv, image = P.load_image(image_file)
-    logger.debug('image loaded')
-    image_data = b64_string(image)
-    logger.debug('image encoced')
-    unique_tiles = P.find_unique_tiles(image_cv, ui_height=56)
-    logger.debug('tiles found')
-    map_dict(encode_tile_from_dict, unique_tiles)
-    logger.debug('tiles encoced')
-    tags = P.load_label(image_file)
-    tag_images = P.numpy_to_images(tags)
-    map_dict(b64_string, tag_images)
-    output = {
-        'image': image_data,
-        'tiles': unique_tiles,
-        'tag_images': tag_images
-    }
-    logger.debug('specific route ok')
-    return jsonify({'output': output})
+    tiles_to_tag = {}
+    logger.debug('LEN KNOWN TILES: {}'.format(len(known_game_tiles)))
+    idx = 0
+    for screenshot_tile in unique_tiles:
+        to_compare = screenshot_tile['tile_data']
+        for tile_info in known_game_tiles:
+            cv_img, encoded_img = P.from_data_to_cv(tile_info['data'])
+            err = P.mse(to_compare, cv_img)
+            if err < 0.001:
+                logger.debug("MATCHED {}".format(tile_info['tile_id']))
+                logger.debug("DATA {}".format(b64_string(encoded_img)))
+                logger.debug("LOCS {}".format(screenshot_tile['locations']))
+                tiles_to_tag['tile_{}'.format(idx)] = {
+                    'tile_id': tile_info['tile_id'],
+                    'tile_data': b64_string(encoded_img),
+                    'locations': screenshot_tile['locations']
+                    }
+                idx += 1
+                break
+        # idx = 0
+        # if idx == -1:
+        #     logger.debug('NEW TILE FOUND')
+        #     height, width, channels = screenshot_tile['tile_data'].shape
+        #     tile_data = P.from_cv_to_bytes(screenshot_tile['tile_data'])
+        #     db.insert_tile(game, width, height, tile_data)
+    return tiles_to_tag
 
 
-@bp.route("/tile", methods=['POST'])
-def save_tile_affordances():
+@bp.route("/submit_tags", methods=['POST'])
+def save_affordances():
     """Save affordances for a certain tile"""
+    data = request.get_json(force=True)
+    tagger = data['tagger_id']
+    image_id = data['image_id']
 
-    affordances = request.form['affordances']
-    tile = request.form['tile']
-    tagger = request.form['tagger_id']
-    #TODO: send tile_id to client then back, not full tile
+    tiles = data['tiles']
+    for tile in tiles:
+        tile_id = tiles[tile]['tile_id']
+        print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
 
-    #TODO: save tile image with affordances
+        # db.insert_tile_tag(tile['tile_id'], tagger, tile['solid'], tile['movable'],
+        #                    tile['destroyable'], tile['dangerous'], tile['gettable'], tile['portal'], tile['usable'], tile['changeable'], tile['ui'])
 
-    output = {
-        'Success': True,
-        'Response': 200,
-    }
-
-    return output
-
-
-@bp.route("/affordances", methods=['POST'])
-def save_blob_affordances():
-    """Save a blob for one affordance for one image"""
-
-    affordance = request.form['affordance']
-    image = request.form['image_id']
-    blob = request.form['affordance_blob']
-    tagger = request.form['tagger_id']
-
-    #TODO: save in database
+    tag_images = data['tag_images']
+    for affordance in tag_images:
+        print('DB INSERT IMAGE TAGS for afford:', affordance)
+        data = tag_images[affordance]
+        # data = convert_img_to_encoding(tag_img['data'])
+        # db.insert_screenshot_tag(image_id, afford, tagger, data)
 
     output = {
         'Success': True,
@@ -149,6 +174,7 @@ def save_blob_affordances():
 # def get_post(id, check_author=True):
 #     """Get a post and its author by id.
 #
+
 #     Checks that the id exists and optionally that the current user is
 #     the author.
 #

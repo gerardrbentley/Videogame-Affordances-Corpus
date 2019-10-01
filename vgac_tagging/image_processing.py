@@ -4,6 +4,23 @@ import numpy as np
 
 AFFORDANCES = ["solid", "movable", "destroyable",
                "dangerous", "gettable", "portal", "usable", "changeable", "ui"]
+DEFAULTS = {'loz': {'ui_height': 56, 'grid_size': 16, 'ui_position': 'top'},
+            'sm3': {'ui_height': 40, 'grid_size': 8, 'ui_position': 'bot'},
+            'metroid': {'ui_height': 0, 'grid_size': 16, 'ui_position': 'top'}
+            }
+
+
+def from_cv_to_bytes(cv_img):
+    orig, encoded = cv2.imencode('.png', cv_img)
+    data = encoded.tobytes()
+    return data
+
+
+def from_data_to_cv(db_data):
+    data = db_data.tobytes()
+    encoded_img = np.frombuffer(data, dtype=np.uint8)
+    orig_cv = cv2.imdecode(encoded_img, cv2.IMREAD_UNCHANGED)
+    return orig_cv, encoded_img
 
 
 def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
@@ -52,6 +69,24 @@ def numpy_to_images(arr):
     return output
 
 
+def mse(a, b):
+    if a.shape != b.shape:
+        return 1
+    diffs = np.square(np.subtract(a, b))
+    total_diff = np.sum(diffs)
+    return np.divide(total_diff, (a.shape[0] * a.shape[1]))
+
+
+def location_in_list(new_tile, prev_tiles):
+    for i in range(len(prev_tiles)):
+        old_tile = prev_tiles[i]
+        err = mse(new_tile, old_tile)
+        # print('SSIM: {:.2f}'.format(similarity))
+        if err < 0.001:
+            return i
+    return -1
+
+
 def gen_grid(width, height, grid_size=16, ui_height=0, ui_position='top', grid_offset_x=0, grid_offset_y=0):
     if ui_position == 'top':
         ignore_start = ui_height
@@ -80,14 +115,21 @@ def point_on_grid(c, r, cols, rows):
 
 """
 Takes opencv image
-Returns dictionary of opencv tiles with corresponding list of locations in image
+Returns list of dictionaries opencv tiles with corresponding list of locations in image
 """
 
 
-def find_unique_tiles(image, grid_size=16, ui_position='top', ui_height=0, grid_offset_x=0, grid_offset_y=0):
+def find_unique_tiles(image, game):
     print('Finding unique tiles in img')
+    settings = DEFAULTS[game]
+    grid_size = settings['grid_size']
+    ui_position = settings['ui_position']
+    ui_height = settings['ui_height']
+    grid_offset_x = 0
+    grid_offset_y = 0
+
     height, width, channels = image.shape
-    img_tiles = {}
+    img_tiles = []
     visited_locations = []
     tile_ctr = 0
     skip_ctr = 0
@@ -118,10 +160,10 @@ def find_unique_tiles(image, grid_size=16, ui_position='top', ui_height=0, grid_
                     print(
                         'ERROR MATCHING TILE WITHIN IMAGE: (r,c) ({},{})'.format(r, c))
 
-                img_tiles['tile_{}'.format(tile_ctr)] = {
-                    'tile_data': template_image,
+                img_tiles.append({
+                    'tile_data': template_np,
                     'locations': matches_dict
-                    }
+                    })
                 tile_ctr += 1
             else:
                 skip_ctr += 1
