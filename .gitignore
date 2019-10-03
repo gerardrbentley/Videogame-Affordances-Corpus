@@ -1,4 +1,5 @@
 .DS_Store
 vgac_tagging/__pycache__
+grid_offset_prediciton/__pycache__
 grid_offset_prediction/saved/
 grid_offset_prediction/offsets.svg
