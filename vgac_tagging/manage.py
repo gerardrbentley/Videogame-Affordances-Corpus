@@ -28,10 +28,10 @@ def runworker():
 
 
 @manager.command
-def ingest_files():
+def ingest_files(path):
     drop_all()
     init_db()
-    ingest_filesystem_data('../../affordances_corpus/games/')
+    ingest_filesystem_data('../path/affordances_corpus/games/')
 
 #@manager.command
 #def check_db():
