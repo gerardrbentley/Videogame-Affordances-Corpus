@@ -1,11 +1,12 @@
 import os
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 AFFORDANCES = ["solid", "movable", "destroyable",
                "dangerous", "gettable", "portal", "usable", "changeable", "ui"]
 DEFAULTS = {'loz': {'ui_height': 56, 'grid_size': 16, 'ui_position': 'top'},
-            'sm3': {'ui_height': 40, 'grid_size': 8, 'ui_position': 'bot'},
+            'sm3': {'ui_height': 40, 'grid_size': 16, 'ui_position': 'bot'},
             'metroid': {'ui_height': 0, 'grid_size': 16, 'ui_position': 'top'}
             }
 
@@ -30,7 +31,7 @@ def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_GRAY2BGR)
     if orig_cv.shape[2] == 4:
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
-    # orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
+    orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
     _, image = cv2.imencode('.png', orig_cv)
     return orig_cv, image
 
@@ -44,6 +45,7 @@ def load_sprite(sprite_file=os.path.join('..', 'affordances_corpus', 'games', 'l
     if(len(channels) == 3):
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2BGRA)
         channels = cv2.split(orig_cv)
+    orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2RGBA)
     _, image = cv2.imencode('.png', orig_cv)
     return orig_cv, image
 
@@ -111,6 +113,84 @@ def gen_grid(width, height, grid_size=16, ui_height=0, ui_position='top', grid_o
 
 def point_on_grid(c, r, cols, rows):
     return c in cols and r in rows
+
+
+def get_best_offset(matches, grid_size):
+    mod_x = np.zeros((grid_size,), dtype=np.uint8)
+    mod_y = np.zeros((grid_size,), dtype=np.uint8)
+
+    for (y, x) in matches:
+        out_x = x % grid_size
+        out_y = y % grid_size
+        mod_x[out_x] += 1
+        mod_y[out_y] += 1
+
+    print(mod_y, mod_y.argmax())
+    print(mod_x, mod_x.argmax())
+    return (mod_y.argmax(), mod_x.argmax())
+
+
+def match_known_tiles(image, known_tiles, game='sm3'):
+    height, width, channels = image.shape
+    settings = DEFAULTS[game]
+    grid_size = settings['grid_size']
+    ui_position = settings['ui_position']
+    ui_height = settings['ui_height']
+    total_matches = []
+    temp = {}
+    tile_ctr = 0
+    #Template match all known tiles
+    for idx, tile_info in enumerate(known_tiles):
+        cv_tile, encoded_img = from_data_to_cv(tile_info['data'])
+        # if idx == 5:
+        #     plt.plot()
+        #     x = plt.imshow(image)
+        #     plt.pause(0.0001)
+        #     plt.show()
+        #     y = plt.imshow(cv_tile)
+        #     plt.pause(0.0001)
+        #     plt.show()
+        #     print(type(cv_tile), cv_tile.shape)
+        #     print(type(encoded_img), encoded_img.shape)
+        #     print(type(image), image.shape)
+        res = cv2.matchTemplate(image, cv_tile, cv2.TM_SQDIFF_NORMED)
+        loc = np.where(res <= 5e-7)
+        matches = list(zip(*loc[::1]))
+
+        if len(matches) != 0:
+            # print('MATCHES')
+            total_matches.extend(matches)
+            id = tile_info['tile_id']
+            temp[f'tile_{tile_ctr}'] = {
+                'tile_id': id,
+                'tile_data': encoded_img,
+                'locations': matches}
+            print(matches)
+            tile_ctr += 1
+    # print(temp)
+    #Find most matched on grid
+    y_offset, x_offset = get_best_offset(total_matches, grid_size)
+    rows, cols = gen_grid(width, height, grid_size, ui_height,
+                          ui_position, x_offset, y_offset)
+    #elimnate matches not on predicted grid
+    out = {}
+    for key, entry in temp.items():
+        curr_matches = entry['locations']
+        # curr_matches = [(y, x) for (y, x) in curr_matches if point_on_grid(
+        #     x, y, cols, rows)]
+
+        matches_dict = {}
+        for i in range(len(curr_matches)):
+            y, x = curr_matches[i]
+            matches_dict['location_{}'.format(i)] = {
+                                              'x': int(x), 'y': int(y)}
+        if len(curr_matches) != 0:
+            out[key] = {
+                'tile_id': entry['tile_id'],
+                'tile_data': entry['tile_data'],
+                'locations': matches_dict
+            }
+    return out
 
 
 """

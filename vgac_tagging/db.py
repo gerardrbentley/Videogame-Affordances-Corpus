@@ -5,6 +5,7 @@ from datetime import datetime
 import base64
 import numpy as np
 import csv
+import pickle
 
 from flask import current_app
 from flask import g
@@ -14,6 +15,7 @@ from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, Larg
 from sqlalchemy.sql import text
 
 import image_processing as P
+import cv2
 
 
 ''' Lists all png images with file structure DIR/GAME_NAME/img/0.png'''
@@ -59,10 +61,13 @@ def affords_from_csv_file(file, file_num_str):
 
 def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
-        with open('test_log.txt', 'a') as file:
-            file.write('Ingesting for game: {}\n'.format(game))
-        ingest_screenshot_files(screenshot_files, game, dir)
-        ingest_tile_files(tile_files, game, dir)
+        if game == 'sm3':
+            with open('test_log.txt', 'a') as file:
+                file.write('Ingesting for game: {}\n'.format(game))
+            ingest_screenshot_files(screenshot_files, game, dir)
+            ingest_tiles_from_pickle(
+                '../grid_offset_prediction/unique_set_sm3_406.tiles', game)
+        # ingest_tile_files(tile_files, game, dir)
         # ingest_sprite_files(sprite_files, game), dir
 
 
@@ -96,6 +101,15 @@ def ingest_screenshot_tags(stacked_array, image_id):
         channel_data = encoded_channel.tobytes()
         insert_screenshot_tag(image_id, i, tagger, channel_data)
     pass
+
+
+def ingest_tiles_from_pickle(file, game):
+    known_tiles = pickle.load(open(file, 'rb'))
+    for tile in known_tiles:
+        full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
+        data = tile.tobytes()
+        h, w, c = full.shape
+        result = insert_tile(game, int(w), int(h), data)
 
 
 def ingest_tile_files(tile_files, game, dir):

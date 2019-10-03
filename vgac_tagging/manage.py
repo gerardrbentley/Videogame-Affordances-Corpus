@@ -2,7 +2,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 
-from db import drop_all, init_db, get_connection, ingest_filesystem_data
+from db import drop_all, init_db, get_connection, ingest_filesystem_data, ingest_tiles_from_pickle
 from init import create_app
 
 # sets up the app

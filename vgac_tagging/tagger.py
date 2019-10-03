@@ -68,15 +68,82 @@ def get_image_to_tag():
     #TODO: get tagger_id from cookie or POST
     tagger_id = 'developer'
 
-    #TODO: do this in database operations
-    # already_tagged = True
-    # while already_tagged:
-    #     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
-    #     #TODO: randomize
-    #     # image_data = db.get_random_screenshot()
-    #     image_data = db.get_screenshot_by_id(25)
-    #     image_id = image_data['image_id']
-    #     already_tagged = db.check_if_already_tagged(image_id, tagger_id)
+    logger.debug('Fetching image for tagger: {}'.format(tagger_id))
+    image_data = db.get_screenshot_by_id(5)
+    #TODO: random image
+    # image_data = db.get_untagged_screenshot(tagger_id)
+    image_id = image_data['image_id']
+
+    game = image_data['game']
+    # width = image_data['width']
+    # height = image_data['height']
+    data = image_data['data']
+    logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
+
+    orig_cv, encoded_img = P.from_data_to_cv(data)
+    image_string = b64_string(encoded_img)
+    logger.debug('Image stringified')
+
+    known_game_tiles = db.get_tiles_by_game(game)
+    logger.debug('Known tiles loaded')
+
+    tiles_to_tag = P.match_known_tiles(orig_cv, known_game_tiles, game)
+    logger.debug("LEN TILES to tag: {}".format(len(tiles_to_tag)))
+
+    map_dict(encode_tile_from_dict, tiles_to_tag)
+    logger.debug('Tiles stringified')
+
+    # tags = P.load_label(image_file)
+    # tag_images = P.numpy_to_images(tags)
+    # map_dict(b64_string, tag_images)
+    output = {
+        'image': image_string,
+        'image_id': image_id,
+        'tiles': tiles_to_tag,
+    }
+    logger.debug('base route ok')
+    return jsonify({'output': output})
+
+
+@bp.route("/submit_tags", methods=['POST'])
+def save_affordances():
+    """Save affordances for a certain tile"""
+    data = request.get_json(force=True)
+    tagger = data['tagger_id']
+    image_id = data['image_id']
+
+    tiles = data['tiles']
+    for tile in tiles:
+        tile_id = tiles[tile]['tile_id']
+        print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
+
+        # db.insert_tile_tag(tile['tile_id'], tagger, tile['solid'], tile['movable'],
+        #                    tile['destroyable'], tile['dangerous'], tile['gettable'], tile['portal'], tile['usable'], tile['changeable'], tile['ui'])
+
+    tag_images = data['tag_images']
+    for affordance in tag_images:
+        print('DB INSERT IMAGE TAGS for afford:', affordance)
+        data = tag_images[affordance]
+        # data = convert_img_to_encoding(tag_img['data'])
+        # db.insert_screenshot_tag(image_id, afford, tagger, data)
+
+    output = {
+        'Success': True,
+        'Response': 200,
+    }
+
+    return output
+
+
+"""
+DEPRECATED
+"""
+"""
+@bp.route("/get_image")
+def get_image_to_tag():
+    #TODO: get tagger_id from cookie or POST
+    tagger_id = 'developer'
+
     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
     image_data = db.get_untagged_screenshot(tagger_id)
     image_id = image_data['image_id']
@@ -141,136 +208,4 @@ def get_tile_ids(unique_tiles, game):
         #     tile_data = P.from_cv_to_bytes(screenshot_tile['tile_data'])
         #     db.insert_tile(game, width, height, tile_data)
     return tiles_to_tag
-
-
-@bp.route("/submit_tags", methods=['POST'])
-def save_affordances():
-    """Save affordances for a certain tile"""
-    data = request.get_json(force=True)
-    tagger = data['tagger_id']
-    image_id = data['image_id']
-
-    tiles = data['tiles']
-    for tile in tiles:
-        tile_id = tiles[tile]['tile_id']
-        print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
-
-        # db.insert_tile_tag(tile['tile_id'], tagger, tile['solid'], tile['movable'],
-        #                    tile['destroyable'], tile['dangerous'], tile['gettable'], tile['portal'], tile['usable'], tile['changeable'], tile['ui'])
-
-    tag_images = data['tag_images']
-    for affordance in tag_images:
-        print('DB INSERT IMAGE TAGS for afford:', affordance)
-        data = tag_images[affordance]
-        # data = convert_img_to_encoding(tag_img['data'])
-        # db.insert_screenshot_tag(image_id, afford, tagger, data)
-
-    output = {
-        'Success': True,
-        'Response': 200,
-    }
-
-    return output
-
-
-#
-# def get_post(id, check_author=True):
-#     """Get a post and its author by id.
-#
-
-#     Checks that the id exists and optionally that the current user is
-#     the author.
-#
-#     :param id: id of post to get
-#     :param check_author: require the current user to be the author
-#     :return: the post with author information
-#     :raise 404: if a post with the given id doesn't exist
-#     :raise 403: if the current user isn't the author
-#     """
-#     post = (
-#         get_db()
-#         .execute(
-#             "SELECT p.id, title, body, created, author_id, username"
-#             " FROM post p JOIN user u ON p.author_id = u.id"
-#             " WHERE p.id = ?",
-#             (id,),
-#         )
-#         .fetchone()
-#     )
-#
-#     if post is None:
-#         abort(404, "Post id {0} doesn't exist.".format(id))
-#
-#     if check_author and post["author_id"] != g.user["id"]:
-#         abort(403)
-#
-#     return post
-#
-#
-# @bp.route("/create", methods=("GET", "POST"))
-# @login_required
-# def create():
-#     """Create a new post for the current user."""
-#     if request.method == "POST":
-#         title = request.form["title"]
-#         body = request.form["body"]
-#         error = None
-#
-#         if not title:
-#             error = "Title is required."
-#
-#         if error is not None:
-#             flash(error)
-#         else:
-#             db = get_db()
-#             db.execute(
-#                 "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?)",
-#                 (title, body, g.user["id"]),
-#             )
-#             db.commit()
-#             return redirect(url_for("blog.index"))
-#
-#     return render_template("blog/create.html")
-#
-#
-# @bp.route("/<int:id>/update", methods=("GET", "POST"))
-# @login_required
-# def update(id):
-#     """Update a post if the current user is the author."""
-#     post = get_post(id)
-#
-#     if request.method == "POST":
-#         title = request.form["title"]
-#         body = request.form["body"]
-#         error = None
-#
-#         if not title:
-#             error = "Title is required."
-#
-#         if error is not None:
-#             flash(error)
-#         else:
-#             db = get_db()
-#             db.execute(
-#                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (
-#                     title, body, id)
-#             )
-#             db.commit()
-#             return redirect(url_for("blog.index"))
-#
-#     return render_template("blog/update.html", post=post)
-#
-#
-# @bp.route("/<int:id>/delete", methods=("POST",))
-# @login_required
-# def delete(id):
-#     """Delete a post.
-#
-#     Ensures that the post exists and that the logged in user is the
-#     author of the post.
-#     """
-#     get_post(id)
-#     db = get_db()
-#     db.execute("DELETE FROM post WHERE id = ?", (id,))
-#     db.commit()
-#     return redirect(url_for("blog.index"))
+"""
