@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import dask
 from dask.diagnostics import ProgressBar
+import pandas as pd
 
 import os
 import argparse
@@ -35,6 +36,9 @@ def get_unique_tiles(image, offset_y=0, offset_x=0, grid_size=16):
     unique_tiles = []
     num_tiles = 0
     num_dupes = 0
+
+    #TODO: YOLO detect sprites, ignore boxes
+
     for r in range(rows):
         for c in range(cols):
             num_tiles += 1
@@ -90,17 +94,16 @@ def k_best_sets(tile_sets_with_offsets, k):
 def parse_args():
     parser = argparse.ArgumentParser(description='grid detection')
 
-    parser.add_argument('--data-path', type=str, default='../../affordances_corpus/games/loz/img/',
-                        help='path to games folder')
-    parser.add_argument('--file', type=str, default='0.png')
+    parser.add_argument('--file', type=str, default='./0.png')
+    parser.add_argument('--game', type=str, default='sm3')
     parser.add_argument('--k', type=int,
-                        default=5, help='num tile sets to select')
+                        default=7, help='num tile sets to select')
     parser.add_argument('--grid-size', type=int,
                         default=16, help='grid square size')
     parser.add_argument('--ui-height', type=int,
-                        default=56, help='ignore this range')
+                        default=40, help='ignore this range')
     parser.add_argument('--ui-position', type=str,
-                        default='top', help='ui top or bot')
+                        default='bot', help='ui top or bot')
 
     args = parser.parse_args()
 
@@ -115,12 +118,21 @@ if __name__ == '__main__':
     pbar = ProgressBar()
     pbar.register()
     tile_sets = unique_tiles_all_offsets(args)
-    res = k_best_sets(tile_sets, 5)
-    pickle.dump(res, open(f'saved/{file_name}.tiles', 'wb'))
+    res = k_best_sets(tile_sets, args.k)
+    pickle.dump(res, open(f'saved/{args.game}_{file_name}.tiles', 'wb'))
 
-    print(len(res))
+    # print(len(res))
+    tset_lens = []
+    y_offsets = []
+    x_offsets = []
     for i in res:
-        print(len(i[0]), i[1], i[2])
+        tset_lens.append(len(i[0]))
+        y_offsets.append((i[1]))
+        x_offsets.append((i[2]))
+        # print(len(i[0]), i[1], i[2])
+    df = pd.DataFrame({"tile_set len": tset_lens,
+                       "y_offset": y_offsets, "x_offset": x_offsets})
+    df.to_csv(f'saved/{args.game}_{file_name}.csv')
     # for i in range(20):
     #     x = pickle.load(open(f'saved/{i}.tiles', 'rb'))
     #     print(f'file: {i}.tiles')
