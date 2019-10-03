@@ -118,10 +118,12 @@ if __name__ == '__main__':
     res = k_best_sets(tile_sets, 5)
     pickle.dump(res, open(f'saved/{file_name}.tiles', 'wb'))
 
-    # print(len(res))
-    # for i in res:
-    #     print(len(i[0]), i[1], i[2])
-    # x = pickle.load(open('saved/0.tiles', 'rb'))
-    # print(len(x))
-    # for i in x:
-    #     print(len(i[0]), i[1], i[2])
+    print(len(res))
+    for i in res:
+        print(len(i[0]), i[1], i[2])
+    # for i in range(20):
+    #     x = pickle.load(open(f'saved/{i}.tiles', 'rb'))
+    #     print(f'file: {i}.tiles')
+    #     print(len(x))
+    #     for i in x:
+    #         print(len(i[0]), i[1], i[2])
