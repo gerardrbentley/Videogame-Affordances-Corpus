@@ -70,3 +70,39 @@ Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
 Ingesting for game: sm3
 Ingesting 24 screenshots for game: sm3
 Ingested 24 screenshots, 24 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 6 screenshots, 0 tiles, 0 sprites for game: gradius
+Found 15 screenshots, 0 tiles, 0 sprites for game: donkey_kong
+Found 27 screenshots, 11 tiles, 0 sprites for game: metroid
+Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 6 screenshots, 0 tiles, 0 sprites for game: gradius
+Found 15 screenshots, 0 tiles, 0 sprites for game: donkey_kong
+Found 27 screenshots, 11 tiles, 0 sprites for game: metroid
+Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 6 screenshots, 0 tiles, 0 sprites for game: gradius
+Found 15 screenshots, 0 tiles, 0 sprites for game: donkey_kong
+Found 27 screenshots, 11 tiles, 0 sprites for game: metroid
+Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 6 screenshots, 0 tiles, 0 sprites for game: gradius
+Found 15 screenshots, 0 tiles, 0 sprites for game: donkey_kong
+Found 27 screenshots, 11 tiles, 0 sprites for game: metroid
+Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3

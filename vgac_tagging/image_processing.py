@@ -11,6 +11,10 @@ DEFAULTS = {'loz': {'ui_height': 56, 'grid_size': 16, 'ui_position': 'top'},
             }
 
 
+def cv_convert(cv_img):
+    return cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+
+
 def from_cv_to_bytes(cv_img):
     orig, encoded = cv2.imencode('.png', cv_img)
     data = encoded.tobytes()
@@ -24,14 +28,15 @@ def from_data_to_cv(db_data):
     return orig_cv, encoded_img
 
 
-def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
+def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png'), swap_colors=True):
     orig_cv = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
     channels = cv2.split(orig_cv)
     if(len(channels) == 1):
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_GRAY2BGR)
     if orig_cv.shape[2] == 4:
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
-    orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
+    if swap_colors:
+        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
     _, image = cv2.imencode('.png', orig_cv)
     return orig_cv, image
 
@@ -115,106 +120,25 @@ def point_on_grid(c, r, cols, rows):
     return c in cols and r in rows
 
 
-def get_best_offset(matches, grid_size):
-    mod_x = np.zeros((grid_size,), dtype=np.uint8)
-    mod_y = np.zeros((grid_size,), dtype=np.uint8)
-
-    for (y, x) in matches:
-        out_x = x % grid_size
-        out_y = y % grid_size
-        mod_x[out_x] += 1
-        mod_y[out_y] += 1
-
-    print(mod_y, mod_y.argmax())
-    print(mod_x, mod_x.argmax())
-    return (mod_y.argmax(), mod_x.argmax())
-
-
-def match_known_tiles(image, known_tiles, game='sm3'):
-    height, width, channels = image.shape
-    settings = DEFAULTS[game]
-    grid_size = settings['grid_size']
-    ui_position = settings['ui_position']
-    ui_height = settings['ui_height']
-    total_matches = []
-    temp = {}
-    tile_ctr = 0
-    #Template match all known tiles
-    for idx, tile_info in enumerate(known_tiles):
-        cv_tile, encoded_img = from_data_to_cv(tile_info['data'])
-        # if idx == 5:
-        #     plt.plot()
-        #     x = plt.imshow(image)
-        #     plt.pause(0.0001)
-        #     plt.show()
-        #     y = plt.imshow(cv_tile)
-        #     plt.pause(0.0001)
-        #     plt.show()
-        #     print(type(cv_tile), cv_tile.shape)
-        #     print(type(encoded_img), encoded_img.shape)
-        #     print(type(image), image.shape)
-        res = cv2.matchTemplate(image, cv_tile, cv2.TM_SQDIFF_NORMED)
-        loc = np.where(res <= 5e-7)
-        matches = list(zip(*loc[::1]))
-
-        if len(matches) != 0:
-            # print('MATCHES')
-            total_matches.extend(matches)
-            id = tile_info['tile_id']
-            temp[f'tile_{tile_ctr}'] = {
-                'tile_id': id,
-                'tile_data': encoded_img,
-                'locations': matches}
-            print(matches)
-            tile_ctr += 1
-    # print(temp)
-    #Find most matched on grid
-    y_offset, x_offset = get_best_offset(total_matches, grid_size)
-    rows, cols = gen_grid(width, height, grid_size, ui_height,
-                          ui_position, x_offset, y_offset)
-    #elimnate matches not on predicted grid
-    out = {}
-    for key, entry in temp.items():
-        curr_matches = entry['locations']
-        # curr_matches = [(y, x) for (y, x) in curr_matches if point_on_grid(
-        #     x, y, cols, rows)]
-
-        matches_dict = {}
-        for i in range(len(curr_matches)):
-            y, x = curr_matches[i]
-            matches_dict['location_{}'.format(i)] = {
-                                              'x': int(x), 'y': int(y)}
-        if len(curr_matches) != 0:
-            out[key] = {
-                'tile_id': entry['tile_id'],
-                'tile_data': entry['tile_data'],
-                'locations': matches_dict
-            }
-    return out
-
-
 """
 Takes opencv image
 Returns list of dictionaries opencv tiles with corresponding list of locations in image
 """
 
 
-def find_unique_tiles(image, game):
+def find_unique_tiles(image, game, y_offset, x_offset):
     print('Finding unique tiles in img')
     settings = DEFAULTS[game]
     grid_size = settings['grid_size']
     ui_position = settings['ui_position']
     ui_height = settings['ui_height']
-    grid_offset_x = 0
-    grid_offset_y = 0
-
     height, width, channels = image.shape
     img_tiles = []
     visited_locations = []
     tile_ctr = 0
     skip_ctr = 0
     rows, cols = gen_grid(width, height, grid_size, ui_height,
-                          ui_position, grid_offset_x, grid_offset_y)
+                          ui_position, x_offset, y_offset)
     for r in np.unique(rows):
         for c in np.unique(cols):
             if((r, c) not in visited_locations):
@@ -251,3 +175,81 @@ def find_unique_tiles(image, game):
     print('VISITED {} tiles, sum of unique({}) + skip({}) = {}'.format(
         len(visited_locations), len(img_tiles), skip_ctr, (len(img_tiles)+skip_ctr)))
     return img_tiles
+
+#
+# def get_best_offset(matches, grid_size):
+#     mod_x = np.zeros((grid_size,), dtype=np.uint8)
+#     mod_y = np.zeros((grid_size,), dtype=np.uint8)
+#
+#     for (y, x) in matches:
+#         out_x = x % grid_size
+#         out_y = y % grid_size
+#         mod_x[out_x] += 1
+#         mod_y[out_y] += 1
+#
+#     print(mod_y, mod_y.argmax())
+#     print(mod_x, mod_x.argmax())
+#     return (mod_y.argmax(), mod_x.argmax())
+#
+#
+# def match_known_tiles(image, known_tiles, game='sm3'):
+#     height, width, channels = image.shape
+#     settings = DEFAULTS[game]
+#     grid_size = settings['grid_size']
+#     ui_position = settings['ui_position']
+#     ui_height = settings['ui_height']
+#     total_matches = []
+#     temp = {}
+#     tile_ctr = 0
+#     #Template match all known tiles
+#     for idx, tile_info in enumerate(known_tiles):
+#         cv_tile, encoded_img = from_data_to_cv(tile_info['data'])
+#         # if idx == 5:
+#         #     plt.plot()
+#         #     x = plt.imshow(image)
+#         #     plt.pause(0.0001)
+#         #     plt.show()
+#         #     y = plt.imshow(cv_tile)
+#         #     plt.pause(0.0001)
+#         #     plt.show()
+#         #     print(type(cv_tile), cv_tile.shape)
+#         #     print(type(encoded_img), encoded_img.shape)
+#         #     print(type(image), image.shape)
+#         res = cv2.matchTemplate(image, cv_tile, cv2.TM_SQDIFF_NORMED)
+#         loc = np.where(res <= 5e-7)
+#         matches = list(zip(*loc[::1]))
+#
+#         if len(matches) != 0:
+#             # print('MATCHES')
+#             total_matches.extend(matches)
+#             id = tile_info['tile_id']
+#             temp[f'tile_{tile_ctr}'] = {
+#                 'tile_id': id,
+#                 'tile_data': encoded_img,
+#                 'locations': matches}
+#             tile_ctr += 1
+#     # print(temp)
+#     #Find most matched on grid
+#     y_offset, x_offset = get_best_offset(total_matches, grid_size)
+#     rows, cols = gen_grid(width, height, grid_size, ui_height,
+#                           ui_position, x_offset, y_offset)
+#     #elimnate matches not on predicted grid
+#     out = {}
+#     for key, entry in temp.items():
+#         curr_matches = entry['locations']
+#         # curr_matches = [(y, x) for (y, x) in curr_matches if point_on_grid(
+#         #     x, y, cols, rows)]
+#
+#         matches_dict = {}
+#         for i in range(len(curr_matches)):
+#             y, x = curr_matches[i]
+#             matches_dict['location_{}'.format(i)] = {
+#                                               'x': int(x), 'y': int(y)}
+#         if len(curr_matches) != 0:
+#             out[key] = {
+#                 'tile_id': entry['tile_id'],
+#                 'tile_data': entry['tile_data'],
+#                 'locations': matches_dict
+#             }
+#     return out
+#

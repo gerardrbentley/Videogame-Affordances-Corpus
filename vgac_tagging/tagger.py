@@ -69,12 +69,14 @@ def get_image_to_tag():
     tagger_id = 'developer'
 
     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
-    image_data = db.get_screenshot_by_id(5)
+    # image_data = db.get_screenshot_by_id(5)
     #TODO: random image
-    # image_data = db.get_untagged_screenshot(tagger_id)
+    image_data = db.get_untagged_screenshot(tagger_id)
     image_id = image_data['image_id']
 
     game = image_data['game']
+    y_offset = image_data['y_offset']
+    x_offset = image_data['x_offset']
     # width = image_data['width']
     # height = image_data['height']
     data = image_data['data']
@@ -84,14 +86,16 @@ def get_image_to_tag():
     image_string = b64_string(encoded_img)
     logger.debug('Image stringified')
 
-    known_game_tiles = db.get_tiles_by_game(game)
-    logger.debug('Known tiles loaded')
+    # known_game_tiles = db.get_tiles_by_game(game)
+    # logger.debug('Known tiles loaded')
 
-    tiles_to_tag = P.match_known_tiles(orig_cv, known_game_tiles, game)
-    logger.debug("LEN TILES to tag: {}".format(len(tiles_to_tag)))
+    unique_tiles = P.find_unique_tiles(
+        orig_cv, game, y_offset, x_offset)
 
-    map_dict(encode_tile_from_dict, tiles_to_tag)
-    logger.debug('Tiles stringified')
+    tiles_to_tag = get_tile_ids(unique_tiles, game)
+    # map_dict(encode_tile_from_dict, tiles_to_tag)
+    logger.debug("Unique TILES found: {}".format(len(unique_tiles)))
+    logger.debug('Tiles id-d, LEN: {}'.format(len(tiles_to_tag)))
 
     # tags = P.load_label(image_file)
     # tag_images = P.numpy_to_images(tags)
@@ -103,6 +107,45 @@ def get_image_to_tag():
     }
     logger.debug('base route ok')
     return jsonify({'output': output})
+
+
+def get_tile_ids(unique_tiles, game):
+    known_game_tiles = db.get_tiles_by_game(game)
+
+    tiles_to_tag = {}
+    logger.debug('LEN KNOWN TILES: {}'.format(len(known_game_tiles)))
+
+    for idx, screenshot_tile in enumerate(unique_tiles):
+        to_compare = screenshot_tile['tile_data']
+        is_in_db = False
+        for tile_info in known_game_tiles:
+            cv_img, encoded_img = P.from_data_to_cv(tile_info['data'])
+            err = P.mse(to_compare, P.cv_convert(cv_img))
+            if err < 0.001:
+                is_in_db = True
+                # logger.debug("MATCHED {}".format(tile_info['tile_id']))
+                # logger.debug("NUM LOCS {}".format(
+                #     len(screenshot_tile['locations'])))
+                tiles_to_tag['tile_{}'.format(idx)] = {
+                    'tile_id': tile_info['tile_id'],
+                    'tile_data': b64_string(P.from_cv_to_bytes(to_compare)),
+                    'locations': screenshot_tile['locations']
+                    }
+                break
+        if not is_in_db:
+            logger.debug("TILE NOT MATCHED IN DB")
+            tiles_to_tag['tile_{}'.format(idx)] = {
+                'tile_id': -1,
+                'tile_data': b64_string(P.from_cv_to_bytes(to_compare)),
+                'locations': screenshot_tile['locations']
+                }
+        # idx = 0
+        # if idx == -1:
+        #     logger.debug('NEW TILE FOUND')
+        #     height, width, channels = screenshot_tile['tile_data'].shape
+        #     tile_data = P.from_cv_to_bytes(screenshot_tile['tile_data'])
+        #     db.insert_tile(game, width, height, tile_data)
+    return tiles_to_tag
 
 
 @bp.route("/submit_tags", methods=['POST'])

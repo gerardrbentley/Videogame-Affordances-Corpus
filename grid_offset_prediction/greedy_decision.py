@@ -82,10 +82,11 @@ def main(args):
         curr_pickle = pickle.load(open(file, 'rb'))
 
         file_name = os.path.split(file)[1]
+        #Cut string after 'CURR_GAME_'
         file_name = os.path.splitext(file_name)[0][4:]
         file_name = int(file_name)
         options = {}
-        for i, (tiles, y_offset, x_offset) in enumerate(curr_pickle):
+        for i, (tiles, y_offset, x_offset, _) in enumerate(curr_pickle):
             #TODO convert tiles with np.frombuffer(__, dtype=np.uint8)
             np_tiles = list(map(np_help, tiles))
             options[i] = {'tiles': np_tiles,
@@ -155,7 +156,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='decides min unique tile set when local img sets are saved as pickles')
 
-    parser.add_argument('--pickle-dir', type=str, default='saved',
+    parser.add_argument('--pickle-dir', type=str, default='output',
                         help='path to tiles folder')
     parser.add_argument('--game', type=str, default='sm3',
                         help='game name')
@@ -185,7 +186,7 @@ if __name__ == '__main__':
 
             fig = show_images(to_show, cols=20)
 
-            plt.savefig(f'loz_{i}.png')
+            plt.savefig(f'{args.game}_{i}.png')
             # plt.pause(0.0001)
             i += IMGS_PER_GRID
     # plt.show()

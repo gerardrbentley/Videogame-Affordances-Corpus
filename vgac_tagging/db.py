@@ -59,8 +59,19 @@ def affords_from_csv_file(file, file_num_str):
     return None
 
 
+def offsets_from_csv_file(file, file_num_str):
+    with open(file, mode='r') as offsets_csv:
+        csv_reader = csv.DictReader(offsets_csv)
+        for row in csv_reader:
+            if row['file_num'] == file_num_str:
+                out = (int(row['y_offset']), int(row['x_offset']))
+                return out
+    return None
+
+
 def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
+        #TODO All games...
         if game == 'sm3':
             with open('test_log.txt', 'a') as file:
                 file.write('Ingesting for game: {}\n'.format(game))
@@ -77,16 +88,26 @@ def ingest_screenshot_files(files, game, dir):
             len(files), game))
     ctr = 0
     tag_ctr = 0
+    game_settings = P.DEFAULTS[game]
     for screen_file in files:
+        file_name = os.path.split(screen_file)[1]
+        file_num_str = os.path.splitext(file_name)[0]
+
         cv, encoded_png = P.load_image(screen_file)
         h, w, c = cv.shape
         data = encoded_png.tobytes()
-        result = insert_screenshot(game, int(w), int(h), data)
+
+        y_off, x_off = offsets_from_csv_file(
+            '../grid_offset_prediction/sm3_min_unique_lengths_offsets.csv', file_num_str)
+        print('offsets got for image num: {}, y:{}, x:{}'.format(
+            file_num_str, y_off, x_off))
+        result = insert_screenshot(game, int(w), int(h), y_off, x_off, data)
         image_id = result['image_id']
-        label = P.load_label(screen_file)
-        if label is not None:
-            ingest_screenshot_tags(label, image_id)
-            tag_ctr += 1
+        #TODO: Load known labels from numpy
+        # label = P.load_label(screen_file)
+        # if label is not None:
+        #     ingest_screenshot_tags(label, image_id)
+        #     tag_ctr += 1
         ctr += 1
     with open('test_log.txt', 'a') as file:
         file.write('Ingested {} screenshots, {} tags for game: {}\n'.format(
@@ -181,10 +202,10 @@ def ingest_sprite_tags(affords, sprite_id):
     pass
 
 
-def insert_screenshot(game, width, height, image):
+def insert_screenshot(game, width, height, y_offset, x_offset, image):
     cmd = text(
-        """INSERT INTO screenshots(image_id, game, width, height, created_on, data)
-        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        """INSERT INTO screenshots(image_id, game, width, height, y_offset, x_offset, created_on, data)
+        VALUES(DEFAULT, :g, :w, :h, :y, :x, :dt, :i)
         RETURNING image_id
         """
     )
@@ -192,6 +213,8 @@ def insert_screenshot(game, width, height, image):
         bindparam('g', value=game, type_=String),
         bindparam('w', value=width, type_=Integer),
         bindparam('h', value=height, type_=Integer),
+        bindparam('y', value=y_offset, type_=Integer),
+        bindparam('x', value=x_offset, type_=Integer),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
         bindparam('i', value=image, type_=LargeBinary)
     )
@@ -328,6 +351,8 @@ def get_random_screenshot():
             'game': row['game'],
             'width': row['width'],
             'height': row['height'],
+            'y_offset': row['y_offset'],
+            'x_offset': row['x_offset'],
             'data': row['data'],
         }
     return output
@@ -356,6 +381,8 @@ def get_untagged_screenshot(tagger_id='default'):
             'game': row['game'],
             'width': row['width'],
             'height': row['height'],
+            'y_offset': row['y_offset'],
+            'x_offset': row['x_offset'],
             'data': row['data'],
         }
     return output
@@ -378,6 +405,8 @@ def get_screenshot_by_id(id):
             'game': row['game'],
             'width': row['width'],
             'height': row['height'],
+            'y_offset': row['y_offset'],
+            'x_offset': row['x_offset'],
             'data': row['data'],
         }
     return output
@@ -501,8 +530,8 @@ def init_db():
         game VARCHAR (50) NOT NULL,
         width integer,
         height integer,
-        grid_offset_x integer,
-        grid_offset_y integer,
+        y_offset integer,
+        x_offset integer,
         created_on TIMESTAMP NOT NULL,
         data bytea
         )"""
