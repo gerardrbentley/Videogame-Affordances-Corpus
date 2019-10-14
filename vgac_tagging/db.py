@@ -14,7 +14,7 @@ from flask.cli import with_appcontext
 from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary, Boolean
 from sqlalchemy.sql import text
 
-import image_processing as P
+from vgac_tagging import image_processing as P
 import cv2
 
 
@@ -22,19 +22,19 @@ import cv2
 
 
 def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
-    image_files = []
+    out_files = []
     for game in list_games(dir):
         per_game_files = glob.glob(os.path.join(dir, game, 'img', '*.png'))
-        game_tile_files = glob.glob(
-            os.path.join(dir, game, 'tile_img', '*.png'))
-        game_sprite_files = glob.glob(
-            os.path.join(dir, game, 'sprite', '*.png'))
-        image_files.append(
-            (game, per_game_files, game_tile_files, game_sprite_files))
+        # game_tile_files = glob.glob(
+        #     os.path.join(dir, game, 'tile_img', '*.png'))
+        # game_sprite_files = glob.glob(
+        #     os.path.join(dir, game, 'sprite', '*.png'))
+        out_files.append(
+            (game, per_game_files))
         with open('test_log.txt', 'a') as file:
-            file.write('Found {} screenshots, {} tiles, {} sprites for game: {}\n'.format(
-                len(per_game_files), len(game_tile_files), len(game_sprite_files), game))
-    return image_files
+            file.write('Found {} screenshots for game: {}\n'.format(
+                len(per_game_files), game))
+    return out_files
 
 
 def list_games(dir=os.path.join('..', 'affordances_corpus', 'games')):
@@ -70,40 +70,44 @@ def offsets_from_csv_file(file, file_num_str):
 
 
 def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
-    for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
+    for game, screenshot_files in get_image_files(dir):
         #TODO All games...
         if game == 'sm3':
             with open('test_log.txt', 'a') as file:
                 file.write('Ingesting for game: {}\n'.format(game))
-            ingest_screenshot_files(screenshot_files, game, dir)
-            ingest_tiles_from_pickle(
-                '../grid_offset_prediction/unique_set_sm3_406.tiles', game)
+            ingest_screenshot_files_with_offsets(screenshot_files, game, dir)
+            ingest_tiles_from_pickle(game, dir)
         # ingest_tile_files(tile_files, game, dir)
         # ingest_sprite_files(sprite_files, game), dir
 
 
-def ingest_screenshot_files(files, game, dir):
+def ingest_screenshot_files_with_offsets(files, game, dir):
+    offsets_csv = os.path.join(
+        dir, game, f'{game}_min_unique_lengths_offsets.csv')
     with open('test_log.txt', 'a') as file:
-        file.write('Ingesting {} screenshots for game: {}\n'.format(
-            len(files), game))
+        file.write('Ingesting {} screenshots with offsets from {} for game: {}\n'.format(
+            len(files), offsets_csv, game))
     ctr = 0
     tag_ctr = 0
     game_settings = P.DEFAULTS[game]
+
     for screen_file in files:
         file_name = os.path.split(screen_file)[1]
         file_num_str = os.path.splitext(file_name)[0]
+        y_offset, x_offset = offsets_from_csv_file(
+            offsets_csv, file_num_str)
+        print('offsets got for image num: {}, y:{}, x:{}'.format(
+            file_num_str, y_offset, x_offset))
 
-        cv, encoded_png = P.load_image(screen_file)
-        h, w, c = cv.shape
+        cv_image, encoded_png = P.load_image(screen_file)
+        h, w, *_ = cv_image.shape
         data = encoded_png.tobytes()
 
-        y_off, x_off = offsets_from_csv_file(
-            '../grid_offset_prediction/sm3_min_unique_lengths_offsets.csv', file_num_str)
-        print('offsets got for image num: {}, y:{}, x:{}'.format(
-            file_num_str, y_off, x_off))
-        result = insert_screenshot(game, int(w), int(h), y_off, x_off, data)
-        image_id = result['image_id']
+        result = insert_screenshot(
+            game, int(w), int(h), y_offset, x_offset, data)
+
         #TODO: Load known labels from numpy
+        # image_id = result['image_id']
         # label = P.load_label(screen_file)
         # if label is not None:
         #     ingest_screenshot_tags(label, image_id)
@@ -113,93 +117,102 @@ def ingest_screenshot_files(files, game, dir):
         file.write('Ingested {} screenshots, {} tags for game: {}\n'.format(
             ctr, tag_ctr, game))
 
+#
+# def ingest_screenshot_tags(stacked_array, image_id):
+#     channels_dict = P.numpy_to_images(stacked_array)
+#     tagger = 'ingested'
+#     for i, affordance in enumerate(P.AFFORDANCES):
+#         encoded_channel = channels_dict[affordance]
+#         channel_data = encoded_channel.tobytes()
+#         insert_screenshot_tag(image_id, i, tagger, channel_data)
+#     pass
 
-def ingest_screenshot_tags(stacked_array, image_id):
-    channels_dict = P.numpy_to_images(stacked_array)
-    tagger = 'ingested'
-    for i, affordance in enumerate(P.AFFORDANCES):
-        encoded_channel = channels_dict[affordance]
-        channel_data = encoded_channel.tobytes()
-        insert_screenshot_tag(image_id, i, tagger, channel_data)
-    pass
 
+def ingest_tiles_from_pickle(game, dir):
+    #Should be one .tiles file in game directory
+    pickle_file = glob.glob(os.path.join(dir, game, '*.tiles'))[0]
+    print('pickle loc: ', pickle_file)
 
-def ingest_tiles_from_pickle(file, game):
-    known_tiles = pickle.load(open(file, 'rb'))
-    for tile in known_tiles:
+    unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
+    for tile in unique_game_tiles:
         full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
         data = tile.tobytes()
-        h, w, c = full.shape
+        h, w, *_ = full.shape
         result = insert_tile(game, int(w), int(h), data)
 
-
-def ingest_tile_files(tile_files, game, dir):
     with open('test_log.txt', 'a') as file:
-        file.write('Ingesting {} tiles for game: {}\n'.format(
-            len(tile_files), game))
-    ctr = 0
-    tag_ctr = 0
-    for tile_file in tile_files:
-        file_name = os.path.split(tile_file)[1]
-        file_num_str = os.path.splitext(file_name)[0]
+        file.write('Ingested {} tiles for game: {}\n'.format(
+            len(unique_game_tiles), game))
 
-        cv, encoded_png = P.load_image(tile_file)
-        h, w, c = cv.shape
-        data = encoded_png.tobytes()
-        result = insert_tile(game, int(w), int(h), data)
-        tile_id = result['tile_id']
+#
+# def ingest_tile_files(tile_files, game, dir):
+#     with open('test_log.txt', 'a') as file:
+#         file.write('Ingesting {} tiles for game: {}\n'.format(
+#             len(tile_files), game))
+#     ctr = 0
+#     tag_ctr = 0
+#     for tile_file in tile_files:
+#         file_name = os.path.split(tile_file)[1]
+#         file_num_str = os.path.splitext(file_name)[0]
+#
+#         cv, encoded_png = P.load_image(tile_file)
+#         h, w, c = cv.shape
+#         data = encoded_png.tobytes()
+#         result = insert_tile(game, int(w), int(h), data)
+#         tile_id = result['tile_id']
+#
+#         csv_file = os.path.join(dir, game, 'tile_affordances.csv')
+#         tile_affords = affords_from_csv_file(csv_file, file_num_str)
+#         if tile_affords is not None:
+#             ingest_tile_tags(tile_affords, tile_id)
+#             tag_ctr += 1
+#         ctr += 1
+#     with open('test_log.txt', 'a') as file:
+#         file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
+#             ctr, tag_ctr, game))
 
-        csv_file = os.path.join(dir, game, 'tile_affordances.csv')
-        tile_affords = affords_from_csv_file(csv_file, file_num_str)
-        if tile_affords is not None:
-            ingest_tile_tags(tile_affords, tile_id)
-            tag_ctr += 1
-        ctr += 1
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
-            ctr, tag_ctr, game))
+#
+# def ingest_tile_tags(affords, tile_id):
+#     tagger = 'ingested'
+#     insert_tile_tag(tile_id, tagger, affords[0], affords[1], affords[2],
+#                     affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
+#     pass
+#
 
-
-def ingest_tile_tags(affords, tile_id):
-    tagger = 'ingested'
-    insert_tile_tag(tile_id, tagger, affords[0], affords[1], affords[2],
-                    affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
-    pass
-
-
-def ingest_sprite_files(sprite_files, game, dir):
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingesting {} sprites for game: {}\n'.format(
-            len(sprite_files), game))
-    ctr = 0
-    tag_ctr = 0
-    for sprite_file in sprite_files:
-        file_name = os.path.split(sprite_file)[1]
-        file_num_str = os.path.splitext(file_name)[0]
-
-        #4 channel with alpha
-        cv, encoded_png = P.load_sprite(sprite_file)
-        h, w, c = cv.shape
-        data = encoded_png.tobytes()
-        result = insert_sprite(game, int(w), int(h), data)
-        sprite_id = result['sprite_id']
-
-        csv_file = os.path.join(dir, game, 'sprite_affordances.csv')
-        sprite_affords = affords_from_csv_file(csv_file, file_num_str)
-        if sprite_affords is not None:
-            ingest_sprite_tags(sprite_affords, sprite_id)
-            tag_ctr += 1
-        ctr += 1
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingested {} sprites, {} tags for game: {}\n'.format(
-            ctr, tag_ctr, game))
-
-
-def ingest_sprite_tags(affords, sprite_id):
-    tagger = 'ingested'
-    insert_sprite_tag(sprite_id, tagger, affords[0], affords[1], affords[2],
-                      affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
-    pass
+# def ingest_sprite_files(sprite_files, game, dir):
+#     with open('test_log.txt', 'a') as file:
+#         file.write('Ingesting {} sprites for game: {}\n'.format(
+#             len(sprite_files), game))
+#     ctr = 0
+#     tag_ctr = 0
+#     for sprite_file in sprite_files:
+#         file_name = os.path.split(sprite_file)[1]
+#         file_num_str = os.path.splitext(file_name)[0]
+#
+#         #4 channel with alpha
+#         cv, encoded_png = P.load_sprite(sprite_file)
+#         h, w, c = cv.shape
+#         data = encoded_png.tobytes()
+#         result = insert_sprite(game, int(w), int(h), data)
+#         sprite_id = result['sprite_id']
+#
+#         csv_file = os.path.join(dir, game, 'sprite_affordances.csv')
+#         sprite_affords = affords_from_csv_file(csv_file, file_num_str)
+#         if sprite_affords is not None:
+#             ingest_sprite_tags(sprite_affords, sprite_id)
+#             tag_ctr += 1
+#         ctr += 1
+#     with open('test_log.txt', 'a') as file:
+#         file.write('Ingested {} sprites, {} tags for game: {}\n'.format(
+#             ctr, tag_ctr, game))
+#
+#
+# def ingest_sprite_tags(affords, sprite_id):
+#     tagger = 'ingested'
+#     insert_sprite_tag(sprite_id, tagger, affords[0], affords[1], affords[2],
+#                       affords[3], affords[4], affords[5], affords[6], affords[7], affords[8])
+#     pass
+#
 
 
 def insert_screenshot(game, width, height, y_offset, x_offset, image):
@@ -658,13 +671,16 @@ def close_db(e=None):
     pass
 
 
-#@click.command("init-db")
-#@with_appcontext
-#def init_db_command():
-#    """Clear existing data and create new tables."""
-#    init_db()
-#    click.echo("Initialized the database.")
-#
+@click.command("reset-db")
+@with_appcontext
+def reset_db_command():
+    """Clear existing data and create new tables and ingest pickles and images."""
+    drop_all()
+    init_db()
+    ingest_filesystem_data('../affordances_corpus/tagging_party/')
+
+    click.echo("Initialized the database.")
+
 #@click.command("destroy-db")
 #@with_appcontext
 #def destroy_db_command():
@@ -681,11 +697,9 @@ def close_db(e=None):
 #    click.echo("Inserted the database.")
 
 
-#def init_app(app):
-#    """Register database functions with the Flask app. This is called by
-#    the application factory.
-#    """
-#    app.teardown_appcontext(close_db)
-#    app.cli.add_command(init_db_command)
-#    app.cli.add_command(destroy_db_command)
-#    app.cli.add_command(test_db_command)
+def init_app(app):
+   """Register database functions with the Flask app. This is called by
+   the application factory.
+   """
+   app.teardown_appcontext(close_db)
+   app.cli.add_command(reset_db_command)

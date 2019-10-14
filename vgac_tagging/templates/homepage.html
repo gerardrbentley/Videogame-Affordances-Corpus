@@ -13,7 +13,7 @@
 
       $("#fetchButtonID").click(function(){
         $.ajax({
-          url: "http://localhost:5000/get_image",
+          url: "http://134.173.85.131:5000/get_image",
           type: "get",
           dataType: "json",
           contentType: "application/json",
@@ -67,7 +67,7 @@
         };
 
         $.ajax({
-          url: "http://localhost:5000/submit_tags",
+          url: "http://134.173.85.131:5000/submit_tags",
           type: "post",
           data: JSON.stringify(TagData),
           contentType: "application/json",

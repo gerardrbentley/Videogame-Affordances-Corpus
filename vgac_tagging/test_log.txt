@@ -106,3 +106,23 @@ Found 21 screenshots, 0 tiles, 0 sprites for game: guardian_legend
 Ingesting for game: sm3
 Ingesting 24 screenshots for game: sm3
 Ingested 24 screenshots, 0 tags for game: sm3
+Found 24 screenshots for game: sm3
+Found 241 screenshots for game: loz
+Found 6 screenshots for game: gradius
+Found 15 screenshots for game: donkey_kong
+Found 27 screenshots for game: metroid
+Found 21 screenshots for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots with offsets from ../../affordances_corpus/tagging_party/sm3/sm3_min_unique_lengths_offsets.csv for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingested 257 tiles for game: sm3
+Found 24 screenshots for game: sm3
+Found 241 screenshots for game: loz
+Found 6 screenshots for game: gradius
+Found 15 screenshots for game: donkey_kong
+Found 27 screenshots for game: metroid
+Found 21 screenshots for game: guardian_legend
+Ingesting for game: sm3
+Ingesting 24 screenshots with offsets from ../../affordances_corpus/tagging_party/sm3/sm3_min_unique_lengths_offsets.csv for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingested 257 tiles for game: sm3

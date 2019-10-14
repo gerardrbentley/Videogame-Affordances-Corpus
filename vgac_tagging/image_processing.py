@@ -28,17 +28,16 @@ def from_data_to_cv(db_data):
     return orig_cv, encoded_img
 
 
-def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png'), swap_colors=True):
+def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
     orig_cv = cv2.imread(image_file, cv2.IMREAD_UNCHANGED)
     channels = cv2.split(orig_cv)
     if(len(channels) == 1):
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_GRAY2BGR)
     if orig_cv.shape[2] == 4:
         orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGRA2BGR)
-    if swap_colors:
-        orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
-    _, image = cv2.imencode('.png', orig_cv)
-    return orig_cv, image
+    # orig_cv = cv2.cvtColor(orig_cv, cv2.COLOR_BGR2RGB)
+    _, encoded_png = cv2.imencode('.png', orig_cv)
+    return orig_cv, encoded_png
 
 
 def load_sprite(sprite_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'sprite', '1.png')):
@@ -144,7 +143,6 @@ def find_unique_tiles(image, game, y_offset, x_offset):
             if((r, c) not in visited_locations):
                 template_np = image[r:r+grid_size if r+grid_size <= height else height,
                                     c:c+grid_size if c+grid_size <= width else width].copy()
-                _, template_image = cv2.imencode('.png', template_np)
                 res = cv2.matchTemplate(
                     template_np, image, cv2.TM_SQDIFF_NORMED)
                 loc = np.where(res <= 5e-6)
