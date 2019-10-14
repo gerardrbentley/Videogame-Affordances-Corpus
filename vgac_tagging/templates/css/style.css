@@ -1,4 +1,4 @@
-#title h1 {
+#title {
     font-family: 'Courier New', Courier, monospace;
     font-size: 30pt;
     text-align: center;
@@ -16,7 +16,11 @@
     opacity: 0.3;
 }
 
-.container {
+#affordancesTitle{
+    font-size: 100pt;
+}
+
+#screenshotContainer {
     position: absolute;
     left: 900px;
     top: 100px;
@@ -24,23 +28,32 @@
     height: 224px;
 }
 
-.container img{
+#screenshotContainer img{
     width: 100%;
     height: 100%;
 
 }
-.container canvas {
+#screenshotContainer canvas {
     position: absolute;
     background: blue;
     top: 0px;
     left: 0px;
 }
 
-#tagging img{
+#taggingContainer{
     position: absolute;
     left: 1200px;
     top: 125px;
 }
+#taggingContainer img{
+    position: relative;
+}
+#taggingContainer p{
+    position: relative;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 
 #gridActions img{
     position: absolute;
@@ -53,12 +66,6 @@
     left: 900px;
     top: 400px;
 }
-
-.checkBoxes {
-    position: absolute;
-    left: 1225px;
-    top: 300px;
-    width: 81px;
-    margin: 50px auto;
-    padding-left: 5px;
+.bold {
+    font-weight: bold;
   }

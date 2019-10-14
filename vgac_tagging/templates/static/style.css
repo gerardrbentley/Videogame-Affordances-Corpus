@@ -12,10 +12,6 @@
     grid-gap: 20px;
 }
 
-.grid img:hover{
-    opacity: 0.3;
-}
-
 .container {
     position: absolute;
     left: 900px;

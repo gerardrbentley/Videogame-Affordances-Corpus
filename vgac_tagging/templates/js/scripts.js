@@ -770,7 +770,7 @@ function draw(x, y)
         var ctx = canvas_draw.getContext('2d');
         //drawing code here
         ctx.lineWidth = 1;
-        ctx.fillStyle = "rgb(0,0,0)";
+        ctx.fillStyle = "#FF0000";
         ctx.strokeRect (x, y, 16, 16);
     } 
     else 
@@ -779,8 +779,7 @@ function draw(x, y)
     }
 }
 var count = 0;
-var listOfCheckBoxes = [document.getElementById("cbQ"), document.getElementById("cbW"), document.getElementById("cbE"), document.getElementById("cbA"), document.getElementById("cbS"),  document.getElementById("cbD"), document.getElementById("cbZ"), document.getElementById("cbX"), document.getElementById("cbC")]
-var affordancesChecked = ""
+var listOfCheckBoxes = ["cbQ", "cbW", "cbE", "cbA", "cbS", "cbD", "cbZ", "cbX", "cbC"]
 document.onkeydown = function(event)
 {     
     //num = num + 1;
@@ -790,13 +789,15 @@ document.onkeydown = function(event)
     {
         //enter
         case 13:
-            //prints to console which affordances have been checked off
+            //prints which affordances have been checked off to console
+            var affordancesChecked = ""
             for (i = 0; i < listOfCheckBoxes.length; i++){
-                if (listOfCheckBoxes[i].checked){
+                if (document.getElementById(listOfCheckBoxes[i]).checked){
                     affordancesChecked += String(listOfCheckBoxes[i])
                 }
             }
             console.log(affordancesChecked)
+
             //alert('test'); //remove if needed
             for (i = 0; i < 10; i++){
                 draw(0, 0);//here draw all the squares around tiles
@@ -860,5 +861,4 @@ function checkBoxes(checkBoxID){
     else{
         box.checked = true;
     }
-    console.log(checkBoxID + " is " + box.checked)
 }

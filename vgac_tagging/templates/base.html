@@ -13,54 +13,59 @@
 </head>
 
 <body>
-    <div>
-        
-        <link href="static/style.css" rel="stylesheet">
-    </div>
 
     <div id="title">
         <h1>Video Game Affordanes</h1>
     </div> 
 
     <div class="grid">
-        <div id=solid>  Solid
+        <div id=solid> Solid
+            <input type = "checkbox" id = "cbQ" /> 
             <img src="solid.png" width="256" height="224">
         </div>
 
         <div id=moveable> Moveable
+            <input type = "checkbox" id = "cbW" /> 
             <img src="moveable.png" width="256" height="224">
         </div>
 
         <div id=destroyable> Destroyable
+                <input type = "checkbox" id = "cbE" />
             <img src="destroyable.png" width="256" height="224">
         </div>
 
         <div id=dangerous> Dangerous
+                <input type = "checkbox" id = "cbA" />
             <img src="dangerous.png" width="256" height="224">
         </div>
 
         <div id=gettable> Gettable
+            <input type = "checkbox" id = "cbS" />
             <img src="gettable.png" width="256" height="224">
         </div>
 
         <div id=portal> Portal
+            <input type = "checkbox" id = "cbD" />
             <img src="portal.png" width="256" height="224">
         </div>
 
         <div id=usable> Usable
+            <input type = "checkbox" id = "cbX" />
             <img src="usable.png" width="256" height="224">
         </div>
 
         <div id=changeable> Changeable
+            <input type = "checkbox" id = "cbC" />
             <img src="changeable.png" width="256" height="224">
         </div>
 
         <div id =ui> Ui
+            <input type = "checkbox" id = "cbC" />
             <img src="ui.png" width="256" height="224">
         </div>
     </div>
     
-    <div class ="container">
+    <div id ="screenshotContainer">
         <div class= "screenshot">
             <img src="screenshot.png" width="256" height="224"> 
         </div>
@@ -69,10 +74,9 @@
         </canvas>
     </div>
     
-    <div id ="tagging">
+    <div id ="taggingContainer">
+            <p> Tagging Photo </p>
             <img id = tile src="tagging.png" width="132" height="132">
-            
-
     </div>
 
     <div id ="gridActions">
@@ -81,24 +85,32 @@
 
     <div id ="instructions">
          <h1>Instructions</h1>
+         <p> <span class="bold">Tag video game pixels based on the nine affordances. </span><br> 
 
-         <p> instructions, explains black/white/grey & what each of the affordances mean </p>
+            - Look at the photo titles "Tagging Photo" <br>
+            The small box shows where the tagging photo appears on the larger image <br>
+            - Determine which affordane(s) it falls under. Select the corresponding checkbox(s) with your mouse or keyboard. <br>
+            - Press enter to receive a new image <br>
+        
+            <br>
+            <span class="bold">The Nine Affordanecs </span><br>
+            - Solid <br>
+            - Moveable <br>
+            - Destroyable <br>
+            - Dangerous <br>
+            - Gettable <br>
+            - Portal <br>
+            - Usable <br>
+            - Changeable <br>
+            - UI <br>
+        </p>
     </div>
 
 
-    <div class="checkBoxes">
-        <input type = "checkbox" id = "cbQ" />
-        <input type = "checkbox" id = "cbW" />
-        <input type = "checkbox" id = "cbE" />
-        <input type = "checkbox" id = "cbA" />
-        <input type = "checkbox" id = "cbS" />
-        <input type = "checkbox" id = "cbD" />
-        <input type = "checkbox" id = "cbZ" />
-        <input type = "checkbox" id = "cbX" />
-        <input type = "checkbox" id = "cbC" />
+    <div>
+        <link href="static/style.css" rel="stylesheet">
+        <script src="js/scripts.js"></script>
     </div>
-
-    <script src="js/scripts.js"></script>
 </body>
 
 </html>
