@@ -56,8 +56,14 @@ Produces csv's and tile sets containing best 5 offsets for each file in folder '
 python greedy_decision.py --pickle-dir output --game sm3 --save-img
 ```
 (the save image flag potentially creates very large matplotlib figures in memory, use with caution)
+
+
 Reads pickles from output/sm3 and greedily concatenates minimal unique set
+
+
 Produces sm3_unique_set_NUMTILES.tiles as pickled tile set of encoded pngs (1d ndarray from opencv)
+
+
 Produces sm3_min_unique_lengths_offsets.csv showing offset decision and local tile set lengths for all images
 
 ## Background
