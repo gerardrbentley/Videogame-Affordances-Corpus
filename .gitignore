@@ -1,8 +1,4 @@
 .DS_Store
 vgac_tagging/__pycache__
-grid_offset_prediciton/__pycache__/
-grid_offset_prediction/saved/
-grid_offset_prediction/output/
-grid_offset_prediction/offsets.svg
-grid_offset_prediction/loz_errors/
-grid_offset_prediction/loz_tile_sets/
+pre_processing/__pycache__/
+pre_processing/output/

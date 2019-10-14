@@ -5,6 +5,7 @@ Current tagging tool for annotating images for VGAC
 ## Table of Contents
 
 - [Installation](#installation)
+- [Pre-processing](#pre-processing)
 - [Background](#background)
 - [Usage](#usage)
 - [Support](#support)
@@ -42,6 +43,22 @@ flask run
 ```
 
 To get the latest dataset go to [https://app.box.com/folder/87149125588] and download the most recent zip file
+
+## Pre-processing
+Suggested usage:
+```
+cd pre_processing
+parallel --bar --jobs 4 'python yolo_predict_grid_offset.py --game sm3 --dest output --k 5 --grid-size 16 --ui-height 40 --ui-position bot --file {}' ::: PATH/TO/IMAGES/FOR/GAME/*.png
+```
+Produces csv's and tile sets containing best 5 offsets for each file in folder 'output/sm3/'
+
+```
+python greedy_decision.py --pickle-dir output --game sm3 --save-img
+```
+(the save image flag potentially creates very large matplotlib figures in memory, use with caution)
+Reads pickles from output/sm3 and greedily concatenates minimal unique set
+Produces sm3_unique_set_NUMTILES.tiles as pickled tile set of encoded pngs (1d ndarray from opencv)
+Produces sm3_min_unique_lengths_offsets.csv showing offset decision and local tile set lengths for all images
 
 ## Background
 
