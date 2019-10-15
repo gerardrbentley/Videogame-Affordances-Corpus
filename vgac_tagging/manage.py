@@ -31,7 +31,7 @@ def runworker():
 def ingest_files():
     drop_all()
     init_db()
-    ingest_filesystem_data('../../affordances_corpus/games/')
+    ingest_filesystem_data('/app/games')#('../../affordances_corpus/games/')
 
 #@manager.command
 #def check_db():

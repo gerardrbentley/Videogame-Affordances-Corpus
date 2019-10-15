@@ -57,7 +57,7 @@ def affords_from_csv_file(file, file_num_str):
     return None
 
 
-def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
+def ingest_filesystem_data(dir='/var/lib/docker/volumes/flask-app-db/_data'):
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
         with open('test_log.txt', 'a') as file:
             file.write('Ingesting for game: {}\n'.format(game))

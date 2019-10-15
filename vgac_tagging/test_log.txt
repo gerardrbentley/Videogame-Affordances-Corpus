@@ -34,3 +34,45 @@ Ingesting 21 screenshots for game: guardian_legend
 Ingested 21 screenshots, 0 tags for game: guardian_legend
 Ingesting 0 tiles for game: guardian_legend
 Ingested 0 tiles, 0 tags for game: guardian_legend
+Found 0 screenshots, 0 tiles, 0 sprites for game: metroid
+Found 0 screenshots, 0 tiles, 0 sprites for game: gradius
+Found 0 screenshots, 0 tiles, 0 sprites for game: guardian_legend
+Found 0 screenshots, 0 tiles, 0 sprites for game: donkey_kong
+Ingesting for game: metroid
+Ingesting 0 screenshots for game: metroid
+Ingested 0 screenshots, 0 tags for game: metroid
+Ingesting 0 tiles for game: metroid
+Ingested 0 tiles, 0 tags for game: metroid
+Ingesting for game: gradius
+Ingesting 0 screenshots for game: gradius
+Ingested 0 screenshots, 0 tags for game: gradius
+Ingesting 0 tiles for game: gradius
+Ingested 0 tiles, 0 tags for game: gradius
+Ingesting for game: guardian_legend
+Ingesting 0 screenshots for game: guardian_legend
+Ingested 0 screenshots, 0 tags for game: guardian_legend
+Ingesting 0 tiles for game: guardian_legend
+Ingested 0 tiles, 0 tags for game: guardian_legend
+Ingesting for game: donkey_kong
+Ingesting 0 screenshots for game: donkey_kong
+Ingested 0 screenshots, 0 tags for game: donkey_kong
+Ingesting 0 tiles for game: donkey_kong
+Ingested 0 tiles, 0 tags for game: donkey_kong
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Ingesting for game: metroid
+Ingesting 2 screenshots for game: metroid
+Ingested 2 screenshots, 0 tags for game: metroid
+Ingesting 11 tiles for game: metroid
+Ingested 11 tiles, 11 tags for game: metroid
+Ingesting for game: loz
+Ingesting 241 screenshots for game: loz
+Ingested 241 screenshots, 0 tags for game: loz
+Ingesting 1009 tiles for game: loz
+Ingested 1009 tiles, 1009 tags for game: loz
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
