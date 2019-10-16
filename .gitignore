@@ -2,5 +2,4 @@
 vgac_tagging/__pycache__
 pre_processing/__pycache__/
 pre_processing/output/
-pre_processing/yolo/checkpoints/*.pth
 vgac_tagging/games
