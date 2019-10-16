@@ -15,8 +15,10 @@ Link to Paper: [EXAG 2019](http://www.exag.org/papers/EXAG_2019_paper_13.pdf)
 - [Contributing](#contributing)
 
 
-## Docker
-The easiest way to get up and running is with Docker. Clone this repository url
+## Docker Install
+We use git lfs for large file storage of the dataset and pre-trained weights. Check if you have it installed with `git lfs install`. If this does not return 'Gif LFS Initialized' go download git lfs [here](https://git-lfs.github.com/)
+
+The easiest way to get up and running is with Docker, these instructions will focus on that set up. Clone this repository's url
 
 ```
 git clone GITHUBURL YOUR_FOLDER_NAME
