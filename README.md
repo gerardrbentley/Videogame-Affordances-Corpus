@@ -54,6 +54,7 @@ To initialize the database and ingest all screenshots and tiles from a directory
 ```
 sudo docker-compose run --service-ports app ./scripts/wait-for-it.sh postgres:5432 -- ./scripts/docker_ingest.sh
 ```
+(If this does not work you may need to make the .sh scripts executable. use `chmod +x scripts/*.sh` to do this for all of them)
 
 After that completes you can simply use the following to run the server on port 5000
 ```
