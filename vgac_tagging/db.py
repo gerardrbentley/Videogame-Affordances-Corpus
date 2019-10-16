@@ -21,7 +21,7 @@ import cv2
 ''' Lists all png images with file structure DIR/GAME_NAME/img/0.png'''
 
 
-def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
+def get_image_files(dir=os.path.join('games')):
     out_files = []
     for game in list_games(dir):
         per_game_files = glob.glob(os.path.join(dir, game, 'img', '*.png'))
@@ -31,13 +31,11 @@ def get_image_files(dir=os.path.join('..', 'affordances_corpus', 'games')):
         #     os.path.join(dir, game, 'sprite', '*.png'))
         out_files.append(
             (game, per_game_files))
-        with open('test_log.txt', 'a') as file:
-            file.write('Found {} screenshots for game: {}\n'.format(
-                len(per_game_files), game))
+
     return out_files
 
 
-def list_games(dir=os.path.join('..', 'affordances_corpus', 'games')):
+def list_games(dir=os.path.join('games')):
     games = next(os.walk(dir))[1]
     return games
 
@@ -47,49 +45,49 @@ def curr_timestamp():
 
 
 def affords_from_csv_file(file, file_num_str):
-    with open(file, mode='r') as tile_csv:
-        csv_reader = csv.DictReader(tile_csv)
-        for row in csv_reader:
-            if row['file'] == file_num_str:
-                out = []
-                for x in row:
-                    if x != 'file':
-                        out.append(bool(int(row[x])))
-                return out
+    if os.path.isfile(file):
+        with open(file, mode='r') as tile_csv:
+            csv_reader = csv.DictReader(tile_csv)
+            for row in csv_reader:
+                if row['file'] == file_num_str:
+                    out = []
+                    for x in row:
+                        if x != 'file':
+                            out.append(bool(int(row[x])))
+                    return out
     return None
 
 
 def offsets_from_csv_file(file, file_num_str):
-    with open(file, mode='r') as offsets_csv:
-        csv_reader = csv.DictReader(offsets_csv)
-        for row in csv_reader:
-            if row['file_num'] == file_num_str:
-                out = (int(row['y_offset']), int(row['x_offset']))
-                return out
-    return None
+    if os.path.isfile(file):
+        with open(file, mode='r') as offsets_csv:
+            csv_reader = csv.DictReader(offsets_csv)
+            for row in csv_reader:
+                if row['file_num'] == file_num_str:
+                    out = (int(row['y_offset']), int(row['x_offset']))
+                    return out
+    return (0, 0)
 
 
-def ingest_filesystem_data(dir=os.path.join('..', 'affordances_corpus', 'games')):
+def ingest_filesystem_data(dir=os.path.join('games')):
+    total_ingested = {}
     for game, screenshot_files in get_image_files(dir):
-        #TODO All games...
-        if game == 'sm3':
-            with open('test_log.txt', 'a') as file:
-                file.write('Ingesting for game: {}\n'.format(game))
-            ingest_screenshot_files_with_offsets(screenshot_files, game, dir)
-            ingest_tiles_from_pickle(game, dir)
+        num_images = ingest_screenshot_files_with_offsets(
+            screenshot_files, game, dir)
+        num_tiles = ingest_tiles_from_pickle(game, dir)
         # ingest_tile_files(tile_files, game, dir)
         # ingest_sprite_files(sprite_files, game), dir
+        total_ingested[game] = {
+            'num_images': num_images, 'num_tiles': num_tiles}
+    print('TOTALS: {}'.format(total_ingested))
 
 
 def ingest_screenshot_files_with_offsets(files, game, dir):
     offsets_csv = os.path.join(
         dir, game, f'{game}_min_unique_lengths_offsets.csv')
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingesting {} screenshots with offsets from {} for game: {}\n'.format(
-            len(files), offsets_csv, game))
+
     ctr = 0
     tag_ctr = 0
-    game_settings = P.DEFAULTS[game]
 
     for screen_file in files:
         file_name = os.path.split(screen_file)[1]
@@ -113,9 +111,8 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
         #     ingest_screenshot_tags(label, image_id)
         #     tag_ctr += 1
         ctr += 1
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingested {} screenshots, {} tags for game: {}\n'.format(
-            ctr, tag_ctr, game))
+    return ctr
+
 
 #
 # def ingest_screenshot_tags(stacked_array, image_id):
@@ -130,23 +127,23 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
 
 def ingest_tiles_from_pickle(game, dir):
     #Should be one .tiles file in game directory
-    pickle_file = glob.glob(os.path.join(dir, game, '*.tiles'))[0]
-    print('pickle loc: ', pickle_file)
-
-    unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
-    for tile in unique_game_tiles:
-        full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
-        data = tile.tobytes()
-        h, w, *_ = full.shape
-        result = insert_tile(game, int(w), int(h), data)
-
-    with open('test_log.txt', 'a') as file:
-        file.write('Ingested {} tiles for game: {}\n'.format(
-            len(unique_game_tiles), game))
+    pickle_file = glob.glob(os.path.join(dir, game, '*.tiles'))
+    ctr = 0
+    if len(pickle_file) > 0:
+        pickle_file = pickle_file[0]
+        print('pickle loc: ', pickle_file)
+        unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
+        for tile in unique_game_tiles:
+            full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
+            data = tile.tobytes()
+            h, w, *_ = full.shape
+            result = insert_tile(game, int(w), int(h), data)
+            ctr += 1
+    return ctr
 
 #
 # def ingest_tile_files(tile_files, game, dir):
-#     with open('test_log.txt', 'a') as file:
+#
 #         file.write('Ingesting {} tiles for game: {}\n'.format(
 #             len(tile_files), game))
 #     ctr = 0
@@ -167,7 +164,7 @@ def ingest_tiles_from_pickle(game, dir):
 #             ingest_tile_tags(tile_affords, tile_id)
 #             tag_ctr += 1
 #         ctr += 1
-#     with open('test_log.txt', 'a') as file:
+#
 #         file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
 #             ctr, tag_ctr, game))
 
@@ -180,7 +177,7 @@ def ingest_tiles_from_pickle(game, dir):
 #
 
 # def ingest_sprite_files(sprite_files, game, dir):
-#     with open('test_log.txt', 'a') as file:
+#
 #         file.write('Ingesting {} sprites for game: {}\n'.format(
 #             len(sprite_files), game))
 #     ctr = 0
@@ -202,7 +199,7 @@ def ingest_tiles_from_pickle(game, dir):
 #             ingest_sprite_tags(sprite_affords, sprite_id)
 #             tag_ctr += 1
 #         ctr += 1
-#     with open('test_log.txt', 'a') as file:
+#
 #         file.write('Ingested {} sprites, {} tags for game: {}\n'.format(
 #             ctr, tag_ctr, game))
 #
