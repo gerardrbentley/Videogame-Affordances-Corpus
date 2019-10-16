@@ -14,7 +14,7 @@ from flask.cli import with_appcontext
 from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary, Boolean
 from sqlalchemy.sql import text
 
-from vgac_tagging import image_processing as P
+import image_processing as P
 import cv2
 
 

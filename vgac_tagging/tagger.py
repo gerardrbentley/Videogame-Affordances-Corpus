@@ -14,8 +14,8 @@ import os
 import base64
 import json
 
-from vgac_tagging import db as db
-from vgac_tagging import image_processing as P
+import db as db
+import image_processing as P
 
 
 # from flaskr.auth import login_required
