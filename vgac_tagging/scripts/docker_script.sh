@@ -1,4 +1,3 @@
 #!/bin/bash
-
-python manage.py recreate_db
+echo 'NO INGESTING'
 python manage.py runserver

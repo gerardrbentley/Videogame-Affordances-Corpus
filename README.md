@@ -5,6 +5,7 @@ Current tagging tool for annotating images for VGAC
 ## Table of Contents
 
 - [Installation](#installation)
+- [Docker Install](#docker)
 - [Pre-processing](#pre-processing)
 - [Background](#background)
 - [Usage](#usage)
@@ -31,7 +32,7 @@ To get the tagging tool, the following should be the simplest way to get up and 
 ```
 git clone git@pom-itb-gitlab01.campus.pomona.edu:faim-lab/vgac_tagging.git YOUR_FOLDER_NAME
 
-cd YOUR_FOLDER_NAME/tagging_tool
+cd YOUR_FOLDER_NAME/vgac_tagging
 
 conda env create --name YOUR_ENV_NAME --file start_env.yml
 
@@ -43,6 +44,57 @@ flask run
 ```
 
 To get the latest dataset go to [https://app.box.com/folder/87149125588] and download the most recent zip file
+
+
+## Docker
+cd into the vgac_tagging folder containing the docker-compose.yml file
+
+To initialize the database and ingest all screenshots and tiles from a directory 'games' (see directory structure below), run the following command (may or may not need sudo depending on your docker set up)
+
+```
+sudo docker-compose run --service-ports app ./scripts/wait-for-it.sh postgres:5432 -- ./scripts/docker_ingest.sh
+```
+
+After that completes you can simply use the following to run the server on port 5000
+```
+sudo docker-compose up
+```
+
+If any unexpected behaviours occur, you can use the following to clean up the containers and persistent database volume
+```
+sudo docker-compose down --remove-orphans --volumes
+```
+
+expects the following directory structure
+```
+project_name
+|   README.md
+|___pre_processing
+|
+|___vgac_tagging
+|   |   manage.py
+|   |   requirements.txt
+|   |   Dockerfile-dev
+|   |   docker-compose.yml
+|   |
+|   |___scripts   
+|   |   |   docker_ingest.sh
+|   |   |   docker_script.sh
+|   |
+|   |___games
+|       |___sm3
+|       |   |   sm3_min_unique_lengths_offsets.csv
+|       |   |   sm3_unique_set_NUMTILES.tiles
+|       |   |
+|       |   |___img
+|       |   |   |   0.png
+|       |   |   |   1.png
+|       |   |
+|       |   |
+|       |   |___tile_img
+|       |   |   |   0.png
+|       |   |   |   1.png
+```
 
 ## Pre-processing
 Suggested usage:
