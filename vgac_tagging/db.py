@@ -79,12 +79,12 @@ def ingest_screenshot_files(files, game, dir):
         h, w, c = cv.shape
         data = encoded_png.tobytes()
         result = insert_screenshot(game, int(w), int(h), data)
-        image_id = result['image_id']
-        label = P.load_label(screen_file)
-        if label is not None:
-            ingest_screenshot_tags(label, image_id)
-            tag_ctr += 1
-        ctr += 1
+        # image_id = result['image_id']
+        # label = P.load_label(screen_file)
+        # if label is not None:
+        #     ingest_screenshot_tags(label, image_id)
+        #     tag_ctr += 1
+        # ctr += 1
     with open('test_log.txt', 'a') as file:
         file.write('Ingested {} screenshots, {} tags for game: {}\n'.format(
             ctr, tag_ctr, game))
@@ -114,14 +114,14 @@ def ingest_tile_files(tile_files, game, dir):
         h, w, c = cv.shape
         data = encoded_png.tobytes()
         result = insert_tile(game, int(w), int(h), data)
-        tile_id = result['tile_id']
-
-        csv_file = os.path.join(dir, game, 'tile_affordances.csv')
-        tile_affords = affords_from_csv_file(csv_file, file_num_str)
-        if tile_affords is not None:
-            ingest_tile_tags(tile_affords, tile_id)
-            tag_ctr += 1
-        ctr += 1
+        # tile_id = result['tile_id']
+        #
+        # csv_file = os.path.join(dir, game, 'tile_affordances.csv')
+        # tile_affords = affords_from_csv_file(csv_file, file_num_str)
+        # if tile_affords is not None:
+        #     ingest_tile_tags(tile_affords, tile_id)
+        #     tag_ctr += 1
+        # ctr += 1
     with open('test_log.txt', 'a') as file:
         file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
             ctr, tag_ctr, game))
