@@ -94,3 +94,122 @@ Ingesting 24 screenshots for game: sm3
 Ingested 24 screenshots, 0 tags for game: sm3
 Ingesting 333 tiles for game: sm3
 Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Found 24 screenshots, 333 tiles, 311 sprites for game: sm3
+Found 241 screenshots, 1009 tiles, 265 sprites for game: loz
+Found 2 screenshots, 11 tiles, 0 sprites for game: metroid
+Ingesting for game: sm3
+Ingesting 24 screenshots for game: sm3
+Ingested 24 screenshots, 0 tags for game: sm3
+Ingesting 333 tiles for game: sm3
+Ingested 333 tiles, 333 tags for game: sm3

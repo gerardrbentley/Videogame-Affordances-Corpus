@@ -58,12 +58,14 @@ def affords_from_csv_file(file, file_num_str):
 
 
 def ingest_filesystem_data(dir='/var/lib/docker/volumes/flask-app-db/_data'):
+    print('INGESTING FROM : ', dir)
     for game, screenshot_files, tile_files, sprite_files in get_image_files(dir):
-        with open('test_log.txt', 'a') as file:
-            file.write('Ingesting for game: {}\n'.format(game))
-        ingest_screenshot_files(screenshot_files, game, dir)
-        ingest_tile_files(tile_files, game, dir)
-        # ingest_sprite_files(sprite_files, game), dir
+        if game == 'sm3':
+            with open('test_log.txt', 'a') as file:
+                file.write('Ingesting for game: {}\n'.format(game))
+            ingest_screenshot_files(screenshot_files, game, dir)
+            ingest_tile_files(tile_files, game, dir)
+            # ingest_sprite_files(sprite_files, game), dir
 
 
 def ingest_screenshot_files(files, game, dir):
