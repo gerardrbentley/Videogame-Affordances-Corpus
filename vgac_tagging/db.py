@@ -132,13 +132,16 @@ def ingest_tiles_from_pickle(game, dir):
     if len(pickle_file) > 0:
         pickle_file = pickle_file[0]
         print('pickle loc: ', pickle_file)
-        unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
-        for tile in unique_game_tiles:
-            full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
-            data = tile.tobytes()
-            h, w, *_ = full.shape
-            result = insert_tile(game, int(w), int(h), data)
-            ctr += 1
+        try:
+            unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
+            for tile in unique_game_tiles:
+                full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
+                data = tile.tobytes()
+                h, w, *_ = full.shape
+                result = insert_tile(game, int(w), int(h), data)
+                ctr += 1
+        except (OSError, IOError, pickle.UnpicklingError) as e:
+            print('Unpickle error! ')
     return ctr
 
 #
