@@ -26,14 +26,22 @@ git clone GITHUBURL YOUR_FOLDER_NAME
 cd YOUR_FOLDER_NAME/vgac_tagging
 ```
 
-This folder should contain the docker-compose.yml file
+This folder should contain the docker-compose.yml file and `vgac_current.zip` (among everything else)
 
-To initialize the database and ingest all screenshots and tiles from a directory 'games' (see directory structure below), run the following command (may or may not need sudo depending on your docker set up)
+The most recent dataset is available in the zip file `vgac_current.zip`; unzip it so that the `games` directory is in the same level as the zip (double-click on mac, open in file manager and drag games folder on linux).
+
+This contains game screenshots in .png format and affordance maps for legend of zelda and super mario 3 images in 9 channel .npy files.
+
+Our current tagging process uses only tiles and screenshots. It requires pre-processing of tiles to be matched into images, currently only the super mario 3 tiles are complete and in pickled form. Tile and sprite ingestion from image files is possible, but not cleanly implemented.
+
+To initialize the database and ingest all screenshots and tiles from the directory `games` (see directory structure below), run the following command (may or may not need sudo depending on your docker set up)
 
 ```
 sudo docker-compose run --service-ports app ./scripts/wait-for-it.sh postgres:5432 -- ./scripts/docker_ingest.sh
 ```
-(If this does not work you may need to make the .sh scripts executable. use `chmod +x scripts/*.sh` to do this for all of them)
+(If this does not work you may need to fix docker or may need to make the .sh scripts executable. use `chmod +x scripts/*.sh` to do this for all of them)
+
+This process should not take too long and should end with a 'DONE INGESTING' message in your terminal.
 
 After that completes you can simply use the following to run the server on port 5000
 ```
