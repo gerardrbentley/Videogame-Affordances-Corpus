@@ -9,6 +9,7 @@ Link to Paper: [EXAG 2019](http://www.exag.org/papers/EXAG_2019_paper_13.pdf)
 - [Docker Install](#docker)
 - [Installation](#installation)
 - [Pre-processing](#pre-processing)
+- [Prediction](#prediction)
 - [Background](#background)
 - [Usage](#usage)
 - [Support](#support)
@@ -80,7 +81,7 @@ project_name
 ```
 
 ## Installation
-These instructions are for running the Flask server locally. 
+These instructions are for running the Flask server locally.
 This assumes you have an Anaconda or miniconda installation functioning. Simplest way to get this running: [https://docs.conda.io/en/latest/miniconda.html]. On Mac download python 3.7 bash installer. Assuming this goes to your Downloads folder, run the following lines in a Terminal shell and follow the prompts to install miniconda.
 
 ```
@@ -133,6 +134,19 @@ Produces sm3_unique_set_NUMTILES.tiles as pickled tile set of encoded pngs (1d n
 
 
 Produces sm3_min_unique_lengths_offsets.csv showing offset decision and local tile set lengths for all images
+
+## Prediction
+
+Example of using a model / classifier to predict affordances in a given screenshot
+```
+cd affordance_prediction
+
+python predict_image.py --trial-id 10_25_trial.pth --image-path data/validation_img/0.png --output-dir data/validation_output
+```
+
+Saves black and white images, with white meaning high probability and black meaning low probability, for each affordance channel.
+
+It treats predictions as probabilities, we have used a cutoff of 0.5 to convert to a binary decision for each affordance. The current model also has a maxpool function with 4x4 window and stride to more resemble the gridded image nature. 
 
 ## Background
 

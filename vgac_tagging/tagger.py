@@ -155,16 +155,23 @@ def save_affordances():
     data = request.get_json(force=True)
     tagger = data['tagger_id']
     image_id = data['image_id']
-
+    logger.debug("RECEIVED POST")
+    logger.debug(f'{data}')
     tiles = data['tiles']
+    logger.debug(f'num tiles tagged: {len(tiles)}')
     for tile in tiles:
         tile_id = tiles[tile]['tile_id']
-        print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
+        if int(tile_id) != -1:
+            print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
 
-        # db.insert_tile_tag(tile['tile_id'], tagger, tile['solid'], tile['movable'],
-        #                    tile['destroyable'], tile['dangerous'], tile['gettable'], tile['portal'], tile['usable'], tile['changeable'], tile['ui'])
+            db.insert_tile_tag(tiles[tile]['tile_id'], tagger, tiles[tile]['solid'], tiles[tile]['movable'],
+                               tiles[tile]['destroyable'], tiles[tile]['dangerous'], tiles[tile]['gettable'], tiles[tile]['portal'], tiles[tile]['usable'], tiles[tile]['changeable'], tiles[tile]['ui'])
+        else:
+            logger.debug('DID NOT INSERT TAG FOR TILE')
 
     tag_images = data['tag_images']
+    logger.debug(f'num affordance channels: {len(tag_images)}')
+
     for affordance in tag_images:
         print('DB INSERT IMAGE TAGS for afford:', affordance)
         data = tag_images[affordance]
