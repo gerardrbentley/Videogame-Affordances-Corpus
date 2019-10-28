@@ -27,6 +27,7 @@ deploy-cs1:
   script: |
     apk update; apk add openssh
     cd vgac_tagging
+    chmod 600 $PRIVATE_KEY
     scp -i $PRIVATE_KEY \
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no  \
