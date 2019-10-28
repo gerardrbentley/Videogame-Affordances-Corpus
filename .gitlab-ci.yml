@@ -36,4 +36,4 @@ deploy-grade01:
     echo “Docker login”
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     echo “Using Docker-compose Up”
-    docker-compose up
+    docker-compose up -d
