@@ -1,0 +1,36 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    
+vgac_tagging:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cat $CA_PUB_CERT_CHAIN >> /kaniko/ssl/certs/ca-certificates.crt
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_TAG
+  stage: build
+
+deploy-grade01:
+  stage: deploy
+  only:
+    refs: ["master"]
+  image: bash
+  environment:
+    name: cs1
+    url: https://pom-itb-cs1.campus.pomona.edu:80
+  script: |
+    apk update 
+    ssh faim@pom-itb-grade01.campus.pomona.edu \
+    -o UserKnownHostsFile=/dev/null \
+    -o StrictHostKeyChecking=no \
+    -i $PRIVATE_KEY "
+    cd ~faim
+    echo “Docker login”
+    docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    echo “Using Docker-compose Up”
+    docker-compose up
