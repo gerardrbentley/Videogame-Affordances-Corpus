@@ -6,6 +6,9 @@ variables:
   TAGGER_IMAGE_TAG: $CI_REGISTRY_IMAGE/tagging/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
     
 vgac_tagging:
+  only:
+    changes:
+      - vgac_tagging/**/*
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
