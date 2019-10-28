@@ -39,6 +39,10 @@ deploy-cs1:
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no  \
     Dockerfile faim@pom-itb-cs1.campus.pomona.edu:~/tagging
+    scp -i $PRIVATE_KEY \
+    -o UserKnownHostsFile=/dev/null \
+    -o StrictHostKeyChecking=no  \
+    requirements.txt faim@pom-itb-cs1.campus.pomona.edu:~/tagging
     ssh faim@pom-itb-cs1.campus.pomona.edu \
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
