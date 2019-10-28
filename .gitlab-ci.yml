@@ -27,13 +27,16 @@ deploy-cs1:
   script: |
     apk update; apk add openssh
     cd vgac_tagging
-    scp docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
+    scp -i $PRIVATE_KEY \
+    -o UserKnownHostsFile=/dev/null \
+    -o StrictHostKeyChecking=no  \
+    docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
     ssh faim@pom-itb-cs1.campus.pomona.edu \
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
     -i $PRIVATE_KEY "
     cd ~faim/tagging
-    echo “Docker login”
+    echo 'Docker login'
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    echo “Using Docker-compose Up”
-    docker-compose up -d
+    echo 'Using Docker-compose Up'
+    docker-compose up -d "
