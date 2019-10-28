@@ -16,7 +16,7 @@ vgac_tagging:
     - /kaniko/executor --context $CI_PROJECT_DIR/vgac_tagging --dockerfile $CI_PROJECT_DIR/vgac_tagging/Dockerfile --destination $TAGGER_IMAGE_TAG
   stage: build
 
-deploy-grade01:
+deploy-cs1:
   stage: deploy
   only:
     refs: ["master"]
@@ -25,7 +25,7 @@ deploy-grade01:
     name: cs1
     url: https://pom-itb-cs1.campus.pomona.edu:80
   script: |
-    apk update
+    apk update add scp
     cd vgac_tagging
     scp docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
     ssh faim@pom-itb-cs1.campus.pomona.edu \
