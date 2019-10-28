@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+  TAGGER_IMAGE_TAG: $CI_REGISTRY_IMAGE/tagging/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
     
 vgac_tagging:
   image:
@@ -13,7 +13,7 @@ vgac_tagging:
     - cd vgac_tagging
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - cat $CA_PUB_CERT_CHAIN >> /kaniko/ssl/certs/ca-certificates.crt
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_TAG
+    - /kaniko/executor --context $CI_PROJECT_DIR/vgac_tagging --dockerfile $CI_PROJECT_DIR/vgac_tagging/Dockerfile --destination $TAGGER_IMAGE_TAG
   stage: build
 
 deploy-grade01:
