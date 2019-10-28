@@ -24,12 +24,13 @@ deploy-grade01:
     name: cs1
     url: https://pom-itb-cs1.campus.pomona.edu:80
   script: |
-    apk update 
-    ssh faim@pom-itb-grade01.campus.pomona.edu \
+    apk update
+    scp docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
+    ssh faim@pom-itb-cs1.campus.pomona.edu \
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
     -i $PRIVATE_KEY "
-    cd ~faim
+    cd ~faim/tagging
     echo “Docker login”
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     echo “Using Docker-compose Up”
