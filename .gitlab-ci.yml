@@ -43,4 +43,5 @@ deploy-cs1:
     echo 'Docker login'
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     echo 'Using Docker-compose Up'
-    docker-compose up -d "
+    POSTGRES_USER=$POSTGRES_USER POSTGRES_DB=$POSTGRES_DB POSTGRES_URL=$POSTGRES_URL POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+    POSTGRES_PORT=$POSTGRES_PORT docker-compose up -d "
