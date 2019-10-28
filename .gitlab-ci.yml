@@ -25,6 +25,7 @@ deploy-grade01:
     url: https://pom-itb-cs1.campus.pomona.edu:80
   script: |
     apk update
+    cd vgac_tagging
     scp docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
     ssh faim@pom-itb-cs1.campus.pomona.edu \
     -o UserKnownHostsFile=/dev/null \
