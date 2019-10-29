@@ -4,7 +4,7 @@ stages:
 
 variables:
   TAGGER_IMAGE_TAG: $CI_REGISTRY_IMAGE/tagging:$CI_COMMIT_REF_SLUG
-    
+
 vgac_tagging:
   only:
     changes:
@@ -26,29 +26,31 @@ deploy-cs1:
   image: bash
   environment:
     name: cs1
-    url: https://pom-itb-cs1.campus.pomona.edu:80
+    url: https://pom-itb-cs1.campus.pomona.edu
   script: |
     apk update; apk add openssh-client
     cd vgac_tagging
     chmod 600 $PRIVATE_KEY
     scp -i $PRIVATE_KEY \
-    -o UserKnownHostsFile=/dev/null \
-    -o StrictHostKeyChecking=no  \
-    docker-compose.yml faim@pom-itb-cs1.campus.pomona.edu:~/tagging
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no  \
+      docker-compose.deploy.yml \
+      faim@pom-itb-cs1.campus.pomona.edu:~/tagging/docker-compose.yml
     ssh faim@pom-itb-cs1.campus.pomona.edu \
-    -o UserKnownHostsFile=/dev/null \
-    -o StrictHostKeyChecking=no \
-    -i $PRIVATE_KEY "
-    cd ~faim/tagging
-    echo 'Docker login'
-    docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY || exit 1
-    echo 'Pull images'
-    TAGGER_IMAGE=$TAGGER_IMAGE_TAG docker-compose pull
-    echo 'Using docker-compose up'
-    POSTGRES_USER=$POSTGRES_USER \
-    POSTGRES_DB=$POSTGRES_DB \
-    POSTGRES_URL=$POSTGRES_URL \
-    POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-    POSTGRES_PORT=$POSTGRES_PORT \
-    TAGGER_IMAGE=$TAGGER_IMAGE_TAG \
-    docker-compose up -d"
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no \
+      -i $PRIVATE_KEY "
+     cd ~faim/tagging
+     echo 'Docker login'
+     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY || exit 1
+     echo 'Pull images'
+     TAGGER_IMAGE=$TAGGER_IMAGE_TAG \
+       docker-compose pull
+     echo 'Using docker-compose up'
+     POSTGRES_USER=$POSTGRES_USER \
+       POSTGRES_DB=$POSTGRES_DB \
+       POSTGRES_URL=$POSTGRES_URL \
+       POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+       POSTGRES_PORT=$POSTGRES_PORT \
+       TAGGER_IMAGE=$TAGGER_IMAGE_TAG \
+       docker-compose up -d"

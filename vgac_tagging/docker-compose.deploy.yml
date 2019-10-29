@@ -15,11 +15,7 @@ services:
   app:
     container_name: app
     restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app
+    image: ${TAGGER_IMAGE}
     command: ["./scripts/wait-for-it.sh", "postgres:5432", "--", "./scripts/docker_script.sh"]
     environment:
       - FLASK_ENV=docker
