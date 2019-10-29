@@ -52,4 +52,4 @@ deploy-cs1:
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     echo 'Using Docker-compose Up'
     POSTGRES_USER=$POSTGRES_USER POSTGRES_DB=$POSTGRES_DB POSTGRES_URL=$POSTGRES_URL POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-    POSTGRES_PORT=$POSTGRES_PORT docker-compose up -d "
+    POSTGRES_PORT=$POSTGRES_PORT TAGGER_IMAGE=$TAGGER_IMAGE_TAG docker-compose up -d "
