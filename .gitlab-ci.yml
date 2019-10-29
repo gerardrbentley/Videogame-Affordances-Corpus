@@ -43,12 +43,12 @@ deploy-cs1:
     echo 'Docker login'
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY || exit 1
     echo 'Pull images'
-    TAGGER_IMAGE=$CI_REGISTRY/$TAGGER_IMAGE_TAG docker-compose pull
+    TAGGER_IMAGE=$TAGGER_IMAGE_TAG docker-compose pull
     echo 'Using docker-compose up'
     POSTGRES_USER=$POSTGRES_USER \
     POSTGRES_DB=$POSTGRES_DB \
     POSTGRES_URL=$POSTGRES_URL \
     POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     POSTGRES_PORT=$POSTGRES_PORT \
-    TAGGER_IMAGE=$CI_REGISTRY/$TAGGER_IMAGE_TAG \
+    TAGGER_IMAGE=$TAGGER_IMAGE_TAG \
     docker-compose up -d"
