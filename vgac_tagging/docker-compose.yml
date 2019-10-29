@@ -15,6 +15,7 @@ services:
   app:
     container_name: app
     restart: always
+    image: ${TAGGER_IMAGE}
     build:
       context: .
       dockerfile: Dockerfile
