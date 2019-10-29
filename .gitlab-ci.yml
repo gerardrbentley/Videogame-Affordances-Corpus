@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  TAGGER_IMAGE_TAG: $CI_REGISTRY_IMAGE/tagging/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+  TAGGER_IMAGE_TAG: $CI_REGISTRY_IMAGE/tagging:$CI_COMMIT_REF_SLUG
     
 vgac_tagging:
   only:
