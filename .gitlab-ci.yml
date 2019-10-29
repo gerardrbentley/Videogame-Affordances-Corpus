@@ -42,6 +42,8 @@ deploy-cs1:
     cd ~faim/tagging
     echo 'Docker login'
     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY || exit 1
+    echo 'Pull images'
+    TAGGER_IMAGE=$CI_REGISTRY/$TAGGER_IMAGE_TAG docker-compose pull
     echo 'Using docker-compose up'
     POSTGRES_USER=$POSTGRES_USER \
     POSTGRES_DB=$POSTGRES_DB \
