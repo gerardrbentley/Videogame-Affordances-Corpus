@@ -23,6 +23,9 @@ deploy-cs1:
   stage: deploy
   only:
     refs: ["master"]
+    changes:
+      - vgac_tagging/**/*
+      - .gitlab-ci.yml
   image: bash
   environment:
     name: cs1
