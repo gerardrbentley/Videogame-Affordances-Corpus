@@ -1,0 +1,7 @@
+version: "3.7"
+services:
+  affordance_training:
+    container_name: affordance_training
+    build:
+      context: .
+      dockerfile: Dockerfile

@@ -1,0 +1,20 @@
+FROM rclone/rclone AS data_fetch
+
+WORKDIR /data
+COPY ./test.conf /config/rclone/rclone.conf
+RUN rclone config dump
+RUN rclone copy remote_data:/FAIM\ Lab/Datasets/vgac_current.zip /data
+RUN unzip /data/vgac_current.zip
+
+FROM python:3.7
+
+COPY ./requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+
+COPY . /app
+WORKDIR /app
+COPY --from=data_fetch /data/games /app/games
+
+
+# GET RCLONE AGAIN AND CONFIG
+# UPLOAD

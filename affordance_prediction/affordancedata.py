@@ -5,7 +5,6 @@ import torch
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from PIL import Image
@@ -29,12 +28,17 @@ class DummyDataset(Dataset):
         return {'image': dum_img, 'affordances': dum_label}
 
 
-class TensorAffordancesDataset(Dataset):
-    def __init__(self, image_dir, affordances_dir, transform=None):
-        self.image_dir = image_dir
-        self.affordances_dir = affordances_dir
+'''
+Assumes each image game/img/2.png has a corresponding game/label/2.npy
+'''
 
-        image_files = glob.glob(image_dir + "*.pt")
+
+class GameAffordancesDataset(Dataset):
+    def __init__(self, game='loz', data_dir='app/games/', transform=None):
+        self.image_dir = os.path.join(data_dir, game, 'img')
+        # self.affordances_dir = affordances_dir
+
+        image_files = glob.glob(self.image_dir + "*.png")
         self.length = len(image_files)
         self.transform = transform
 
@@ -42,100 +46,13 @@ class TensorAffordancesDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        label_file = self.affordances_dir + str(idx)+".pt"
-        img_file = self.image_dir + str(idx)+".pt"
-        stacked_tensor = torch.load(label_file)
-        stacked_tensor.requires_grad_(False)
-        image_tensor = torch.load(img_file)
-        sample = {'image': image_tensor, 'affordances': stacked_tensor}
+        img_file = os.path.join(self.image_dir, str(idx) + '.png')
+        image = Image.open(img_file).convert('RGB')
 
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
-
-
-class SKAffordancesDataset(Dataset):
-    def __init__(self, image_dir, affordances_dir, transform=None):
-        self.image_dir = image_dir
-        self.affordances_dir = affordances_dir
-
-        image_files = glob.glob(image_dir + "*.pt")
-        self.length = len(image_files)
-        self.transform = transform
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        label_file = self.affordances_dir + str(idx)+".pt"
-        img_file = self.image_dir + str(idx)+".pt"
-        stacked_tensor = torch.load(label_file)
-        stacked_tensor.requires_grad_(False)
-        image_tensor = torch.load(img_file)
-        sample = {'image': image_tensor, 'affordances': stacked_tensor}
-
-        if self.transform:
-            sample = self.transform(sample)
-
-        return (sample['image'], sample['affordances'])
-
-
-class GrayAffordancesDataset(Dataset):
-    def __init__(self, image_dir, affordances_dir, transform=None):
-        self.image_dir = image_dir
-        self.affordances_dir = affordances_dir
-
-        image_files = glob.glob(image_dir + "*.png")
-        self.length = len(image_files)
-        self.transform = transform
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        image = Image.open(self.image_dir + str(idx)+".png").convert("L")
-        label_file = self.affordances_dir + str(idx)+".pt"
-        stacked_tensor = torch.load(label_file)
-        stacked_tensor.requires_grad_(False)
-        stacked_np = stacked_tensor.numpy()
-        stacked_np = (stacked_np * 255).astype(np.uint8)
-        first_channel = Image.fromarray(stacked_np[:, :, 0], mode="L")
-        channels = (first_channel,)
-        for x in range(1, 9):
-            channel = stacked_np[:, :, x]
-            channel_PIL = Image.fromarray(channel, mode='L')
-            channels += (channel_PIL,)
-
-        affordances = channels
-
-        sample = {'image': image, 'affordances': affordances}
-
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
-
-
-class ImageAffordancesDataset(Dataset):
-    def __init__(self, image_dir, affordances_dir, transform=None):
-        self.image_dir = image_dir
-        self.affordances_dir = affordances_dir
-
-        image_files = glob.glob(image_dir + "*.png")
-        self.length = len(image_files)
-        self.transform = transform
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        image = Image.open(self.image_dir
-                           + str(idx)+".png").convert('RGB')
-        label_file = self.affordances_dir + str(idx)+".pt"
-        stacked_tensor = torch.load(label_file)
-        stacked_tensor.requires_grad_(False)
-        stacked_np = stacked_tensor.numpy()
+        label_file = img_file.replace('img', 'label').replace('.png', '.npy')
+        # stacked_tensor = torch.load(label_file)
+        # stacked_tensor.requires_grad_(False)
+        stacked_np = np.load(label_file)
         stacked_np = (stacked_np * 255).astype(np.uint8)
         first_channel = Image.fromarray(stacked_np[:, :, 0], mode="L")
         channels = (first_channel,)
