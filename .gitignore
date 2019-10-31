@@ -7,3 +7,4 @@ pre_processing/yolo/utils/__pycache__/
 pre_processing/output/
 vgac_tagging/games
 affordance_prediction/__pycache__/
+games/

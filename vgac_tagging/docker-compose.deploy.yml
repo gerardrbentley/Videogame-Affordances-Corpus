@@ -25,6 +25,8 @@ services:
       - postgres
     volumes:
       - ./games:/games
+    user:
+      1001:1001
 
 volumes:
   flask-app-db:
