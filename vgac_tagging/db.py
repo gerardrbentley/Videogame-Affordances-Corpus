@@ -64,12 +64,12 @@ def affords_from_csv_file(file, file_num_str):
     return None
 
 
-def offsets_from_csv_file(file, file_num_str):
+def offsets_from_csv_file(file, file_uuid):
     if os.path.isfile(file):
         with open(file, mode='r') as offsets_csv:
             csv_reader = csv.DictReader(offsets_csv)
             for row in csv_reader:
-                if row['file_num'] == file_num_str:
+                if row['file_name'] == file_uuid:
                     out = (int(row['y_offset']), int(row['x_offset']))
                     return out
     return (0, 0)
@@ -78,13 +78,14 @@ def offsets_from_csv_file(file, file_num_str):
 def ingest_filesystem_data(dir=os.path.join('games')):
     total_ingested = {}
     for game, screenshot_files, tile_files in get_image_files(dir):
-        num_images = ingest_screenshot_files_with_offsets(
-                screenshot_files, game, dir)
-        # num_tiles = ingest_tiles_from_pickle(game, dir)
-        num_tiles = ingest_tile_files(tile_files, game, dir)
-        # ingest_sprite_files(sprite_files, game), dir
-        total_ingested[game] = {
-                'num_images': num_images, 'num_tiles': num_tiles}
+        if game == 'sm3':
+            num_images = ingest_screenshot_files_with_offsets(
+                    screenshot_files, game, dir)
+            # num_tiles = ingest_tiles_from_pickle(game, dir)
+            num_tiles = ingest_tile_files(tile_files, game, dir)
+            # ingest_sprite_files(sprite_files, game), dir
+            total_ingested[game] = {
+                    'num_images': num_images, 'num_tiles': num_tiles}
     print('TOTALS: {}'.format(total_ingested))
 
 
@@ -102,18 +103,17 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
         if is_in:
             print(f'SKIPPED INGESTING IMAGE: {screenshot_uuid}')
         else:
-            # TODO: offsets
-            # y_offset, x_offset = offsets_from_csv_file(
-            #     offsets_csv, screenshot_uuid)
-            # print('offsets got for image num: {}, y:{}, x:{}'.format(
-            #     screenshot_uuid, y_offset, x_offset))
+            y_offset, x_offset = offsets_from_csv_file(
+                offsets_csv, screenshot_uuid)
+            print('offsets got for image num: {}, y:{}, x:{}'.format(
+                screenshot_uuid, y_offset, x_offset))
 
             cv_image, encoded_png = P.load_image(screen_file)
             h, w, *_ = cv_image.shape
             data = encoded_png.tobytes()
 
             result = insert_screenshot(
-                screenshot_uuid, game, int(w), int(h), 0, 0, data)
+                screenshot_uuid, game, int(w), int(h), y_offset, x_offset, data)
 
             #TODO: Load known labels from numpy
             # image_id = result['image_id']

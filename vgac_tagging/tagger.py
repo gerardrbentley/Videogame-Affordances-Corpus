@@ -119,7 +119,7 @@ def get_tile_ids(unique_tiles, game):
         is_in_db = False
         for tile_info in known_game_tiles:
             cv_img, encoded_img = P.from_data_to_cv(tile_info['data'])
-            err = P.mse(to_compare, P.cv_convert(cv_img))
+            err = P.mse(to_compare, (cv_img))
             if err < 0.001:
                 is_in_db = True
                 # logger.debug("MATCHED {}".format(tile_info['tile_id']))

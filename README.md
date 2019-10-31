@@ -17,8 +17,6 @@ Link to Paper: [EXAG 2019](http://www.exag.org/papers/EXAG_2019_paper_13.pdf)
 
 
 ## Docker Install
-We use git lfs for large file storage of the dataset and pre-trained weights. Check if you have it installed with `git lfs install`. If this does not return 'Gif LFS Initialized' go download git lfs [here](https://git-lfs.github.com/)
-
 The easiest way to get up and running is with Docker, these instructions will focus on that set up. Clone this repository's url
 
 ```
@@ -35,16 +33,8 @@ This contains game screenshots in .png format and affordance maps for legend of 
 
 Our current tagging process uses only tiles and screenshots. It requires pre-processing of tiles to be matched into images, currently only the super mario 3 tiles are complete and in pickled form. Tile and sprite ingestion from image files is possible, but not cleanly implemented.
 
-To initialize the database and ingest all screenshots and tiles from the directory `games` (see directory structure below), run the following command (may or may not need sudo depending on your docker set up)
+To initialize the database and ingest all screenshots and tiles from the directory `games` (see directory structure below), run the following command (may or may not need sudo depending on your docker set up). Running this after database ingestion should ignore all previously added screenshots and tiles and run the server
 
-```
-sudo docker-compose run --service-ports app ./scripts/wait-for-it.sh postgres:5432 -- ./scripts/docker_ingest.sh
-```
-(If this does not work you may need to fix docker or may need to make the .sh scripts executable. use `chmod +x scripts/*.sh` to do this for all of them)
-
-This process should not take too long and should end with a 'DONE INGESTING' message in your terminal.
-
-After that completes you can simply use the following to run the server on port 5000
 ```
 sudo docker-compose up
 ```
@@ -59,6 +49,7 @@ expects the following directory structure
 project_name
 |   README.md
 |___pre_processing
+|   |
 |
 |___vgac_tagging
 |   |   manage.py
@@ -73,11 +64,13 @@ project_name
 |   |___games
 |       |___sm3
 |       |   |   sm3_min_unique_lengths_offsets.csv
-|       |   |   sm3_unique_set_NUMTILES.tiles
 |       |   |
 |       |   |___img
-|       |   |   |   0.png
-|       |   |   |   1.png
+|       |   |   |   12341234-UUID-56785678.png
+|       |   |
+|       |   |___tile_img
+|       |   |   |   43214321-UUID-87658765.png
+
 ```
 
 ## Installation
@@ -117,9 +110,9 @@ flask run
 Suggested usage:
 ```
 cd pre_processing
-parallel --bar --jobs 4 'python yolo_predict_grid_offset.py --game sm3 --dest output --k 5 --grid-size 16 --ui-height 40 --ui-position bot --file {}' ::: PATH/TO/IMAGES/FOR/GAME/*.png
+parallel --bar --jobs 4 'python yolo_predict_grid_offset.py --game sm3 --dest output --k 5 --grid-size 8 --ui-height 40 --ui-position bot --file {}' ::: PATH/TO/IMAGES/FOR/GAME/*.png
 ```
-Produces csv's and tile sets containing best 5 offsets for each file in folder 'output/sm3/'
+Produces csv's and pickled tile sets containing best 5 offsets for each file in folder 'output/sm3/'
 
 ```
 python greedy_decision.py --pickle-dir output --game sm3 --save-img
@@ -127,13 +120,15 @@ python greedy_decision.py --pickle-dir output --game sm3 --save-img
 (the save image flag potentially creates very large matplotlib figures in memory, use with caution)
 
 
-Reads pickles from output/sm3 and greedily concatenates minimal unique set
+Reads pickled tile sets from output/sm3 and greedily concatenates minimal unique set
+
+Produces output/sm3_tile_img/ containing all tile png's with UUID filenames ready to copy into /games/sm3/tile_img
+
+Produces sm3_min_unique_lengths_offsets.csv showing offset decision and local tile set lengths for all images also ready to copy into /games/sm3/
 
 
-Produces sm3_unique_set_NUMTILES.tiles as pickled tile set of encoded pngs (1d ndarray from opencv)
+OLD USE: Produces sm3_unique_set_NUMTILES.tiles as pickled tile set of encoded pngs (1d ndarray from opencv)
 
-
-Produces sm3_min_unique_lengths_offsets.csv showing offset decision and local tile set lengths for all images
 
 ## Prediction
 
@@ -146,7 +141,7 @@ python predict_image.py --trial-id 10_25_trial.pth --image-path data/validation_
 
 Saves black and white images, with white meaning high probability and black meaning low probability, for each affordance channel.
 
-It treats predictions as probabilities, we have used a cutoff of 0.5 to convert to a binary decision for each affordance. The current model also has a maxpool function with 4x4 window and stride to more resemble the gridded image nature. 
+It treats predictions as probabilities, we have used a cutoff of 0.5 to convert to a binary decision for each affordance. The current model also has a maxpool function with 4x4 window and stride to more resemble the gridded image nature.
 
 ## Background
 

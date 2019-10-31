@@ -192,7 +192,7 @@ def unique_tiles_all_offsets(args):
     orig_image = cv2.imread(args.file, cv2.IMREAD_UNCHANGED)
     if orig_image.shape[2] == 4:
         orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGRA2BGR)
-    orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
+    # orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
 
     if args.ui_position == 'top':
         orig_image = orig_image[args.ui_height:, :, :]
@@ -279,7 +279,7 @@ if __name__ == '__main__':
     args = parse_args()
     file_name = os.path.split(args.file)[1]
     file_name = os.path.splitext(file_name)[0]
-    print(f'file: {args.file} - num {file_name}')
+    print(f'file: {args.file} - uuid {file_name}')
     pbar = ProgressBar()
     pbar.register()
 

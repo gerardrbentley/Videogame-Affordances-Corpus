@@ -1,7 +1,9 @@
 .DS_Store
-vgac_tagging/__pycache__
+vgac_tagging/__pycache__/
 pre_processing/__pycache__/
 pre_processing/yolo/checkpoints/*.pth
+pre_processing/yolo/__pycache__/
+pre_processing/yolo/utils/__pycache__/
 pre_processing/output/
 vgac_tagging/games
 affordance_prediction/__pycache__/

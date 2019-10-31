@@ -3,6 +3,7 @@ import os
 import glob
 import pickle
 import argparse
+import uuid
 
 import cv2
 import matplotlib.pyplot as plt
@@ -49,7 +50,6 @@ def main(args):
         file_name = file_name.split('_')[1]
         # Cut .tiles
         file_name = os.path.splitext(file_name)[0]
-        file_name = int(file_name)
 
         options = {}
         for i, (tiles, y_offset, x_offset, _) in enumerate(curr_pickle):
@@ -70,8 +70,8 @@ def main(args):
     y_offsets = []
     x_offsets = []
     bincount = [0, 0, 0, 0, 0]
-    for i in range(NUM_FILES):
-        curr_options = tile_sets[i]
+    i = 0
+    for file_name, curr_options in tile_sets.items():
 
         # Upper bound for next decision based on accumulated tiles
         best_next = len(greedy_set) + 100
@@ -102,9 +102,9 @@ def main(args):
         #         plt.savefig(f'err_{i}_{z}_{q}.png')
         print(
             f'iteration {i}, prev: {len(greedy_set)}, new greed: {len(updated_greedy)}, diff: {len(updated_greedy) - len(greedy_set)}')
-
+        i += 1
         bincount[best_idx] += 1
-        files.append(i)
+        files.append(file_name)
         tset_lens.append(best_len)
         y_offsets.append(curr_options[best_idx]['y_offset'])
         x_offsets.append(curr_options[best_idx]['x_offset'])
@@ -112,19 +112,25 @@ def main(args):
         greedy_set = updated_greedy
     print('bins: ', bincount)
 
-    df = pd.DataFrame({"file_num": files, "tile_set len": tset_lens,
+    df = pd.DataFrame({"file_name": files, "tile_set_len": tset_lens,
                        "y_offset": y_offsets, "x_offset": x_offsets})
     df.to_csv(f'{CURR_GAME}_min_unique_lengths_offsets.csv', index=False)
 
     length = len(greedy_set)
-    pickle.dump(greedy_set, open(
-        f'{args.game}_unique_set_{length}.tiles', 'wb'))
+    os.makedirs(f'{args.pickle_dir}/{args.game}_tile_img', exist_ok=True)
+    for tile in greedy_set:
+        full_tile = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
+        new_id = str(uuid.uuid4())
+        cv2.imwrite(f'{args.game}_tile_img/{new_id}.png', full_tile)
+
+    # pickle.dump(greedy_set, open(
+    #     f'{args.game}_unique_set_{length}.tiles', 'wb'))
     return bincount, greedy_set
 
 
 def map_decode(img):
     out = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
-    return out
+    return cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
 
 
 def parse_args():
@@ -154,6 +160,7 @@ if __name__ == '__main__':
     if args.save_img:
         os.makedirs('tile_set_imgs', exist_ok=True)
         ready = list(map(map_decode, greedy_set))
+        # ready = greedy_set
         IMGS_PER_GRID = 400
         i = 0
         print(len(ready))

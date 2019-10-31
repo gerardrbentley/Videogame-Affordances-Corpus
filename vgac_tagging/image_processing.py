@@ -5,7 +5,7 @@ import numpy as np
 AFFORDANCES = ["solid", "movable", "destroyable",
                "dangerous", "gettable", "portal", "usable", "changeable", "ui"]
 DEFAULTS = {'loz': {'ui_height': 56, 'grid_size': 16, 'ui_position': 'top'},
-            'sm3': {'ui_height': 40, 'grid_size': 16, 'ui_position': 'bot'},
+            'sm3': {'ui_height': 40, 'grid_size': 8, 'ui_position': 'bot'},
             'metroid': {'ui_height': 0, 'grid_size': 16, 'ui_position': 'top'},
             'donkey_kong': {'ui_height': 0, 'grid_size': 16, 'ui_position': 'top'},
             'gradius': {'ui_height': 0, 'grid_size': 16, 'ui_position': 'top'},
