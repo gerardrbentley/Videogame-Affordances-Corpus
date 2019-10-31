@@ -3,10 +3,9 @@ import time
 import os
 
 from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
 
 
-from db import drop_all, init_db, get_connection, ingest_filesystem_data, ingest_tiles_from_pickle
+from db import drop_all, init_db, ingest_filesystem_data
 from init import create_app
 
 # sets up the app
@@ -33,25 +32,23 @@ def runworker():
 
 @manager.command
 def ingest_files():
-    print('INGESTING')
-    drop_all()
-    print('DROPPED')
+    print('CREATING TABLES IF NOT EXIST')
     init_db()
-    print('ADDED')
+    print('INGESTING DATA FROM /app/games')
     ingest_filesystem_data('/app/games')  # ('../../affordances_corpus/games/')
     # app.run(debug=True, host='0.0.0.0', port=5000)
-#
-# @manager.command
-# def recreate_db():
-#     """
-#     Recreates a database. This should only be used once
-#     when there's a new database instance. This shouldn't be
-#     used when you migrate your database.
-#     """
-#
-#     drop_all()
-#     init_db()
-#     get_connection()
+
+
+@manager.command
+def recreate_db():
+    """
+    Recreates a database. This should only be used once
+    when there's a new database instance. This shouldn't be
+    used when you migrate your database.
+    """
+
+    drop_all()
+    init_db()
 
 
 if __name__ == "__main__":

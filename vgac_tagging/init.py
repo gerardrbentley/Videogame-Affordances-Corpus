@@ -5,7 +5,6 @@ from flask import Flask
 
 from flask import render_template
 from flask import send_from_directory
-from flask_sqlalchemy import SQLAlchemy
 import db
 import tagger
 

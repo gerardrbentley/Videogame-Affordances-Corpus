@@ -69,10 +69,8 @@ def get_image_to_tag():
     tagger_id = 'developer'
 
     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
-    image_data = db.get_screenshot_by_id(7)
 
-    #TODO: random image
-    # image_data = db.get_untagged_screenshot(tagger_id)
+    image_data = db.get_untagged_screenshot(tagger_id)
     image_id = image_data['image_id']
 
     game = image_data['game']

@@ -2,7 +2,7 @@ import os
 import glob
 import click
 from datetime import datetime
-import base64
+import uuid
 import numpy as np
 import csv
 import pickle
@@ -13,6 +13,7 @@ from flask.cli import with_appcontext
 
 from sqlalchemy import create_engine, bindparam, String, Integer, DateTime, LargeBinary, Boolean
 from sqlalchemy.sql import text
+from sqlalchemy.dialects.postgresql import UUID
 
 import image_processing as P
 import cv2
@@ -24,19 +25,24 @@ import cv2
 def get_image_files(dir=os.path.join('games')):
     out_files = []
     for game in list_games(dir):
-        per_game_files = glob.glob(os.path.join(dir, game, 'img', '*.png'))
-        # game_tile_files = glob.glob(
-        #     os.path.join(dir, game, 'tile_img', '*.png'))
+        game_screenshot_files = glob.glob(
+            os.path.join(dir, game, 'img', '*.png'))
+        game_tile_files = glob.glob(
+            os.path.join(dir, game, 'tile_img', '*.png'))
         # game_sprite_files = glob.glob(
         #     os.path.join(dir, game, 'sprite', '*.png'))
         out_files.append(
-            (game, per_game_files))
+            (game, game_screenshot_files, game_tile_files))
 
     return out_files
 
 
 def list_games(dir=os.path.join('games')):
-    games = next(os.walk(dir))[1]
+    try:
+        games = next(os.walk(dir))[1]
+    except (StopIteration):
+        games = []
+        print('GAME FOLDERS NOT FOUND IN GAMES, NO FILES FOUND')
     return games
 
 
@@ -71,14 +77,14 @@ def offsets_from_csv_file(file, file_num_str):
 
 def ingest_filesystem_data(dir=os.path.join('games')):
     total_ingested = {}
-    for game, screenshot_files in get_image_files(dir):
+    for game, screenshot_files, tile_files in get_image_files(dir):
         num_images = ingest_screenshot_files_with_offsets(
-            screenshot_files, game, dir)
-        num_tiles = ingest_tiles_from_pickle(game, dir)
-        # ingest_tile_files(tile_files, game, dir)
+                screenshot_files, game, dir)
+        # num_tiles = ingest_tiles_from_pickle(game, dir)
+        num_tiles = ingest_tile_files(tile_files, game, dir)
         # ingest_sprite_files(sprite_files, game), dir
         total_ingested[game] = {
-            'num_images': num_images, 'num_tiles': num_tiles}
+                'num_images': num_images, 'num_tiles': num_tiles}
     print('TOTALS: {}'.format(total_ingested))
 
 
@@ -91,26 +97,31 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
 
     for screen_file in files:
         file_name = os.path.split(screen_file)[1]
-        file_num_str = os.path.splitext(file_name)[0]
-        y_offset, x_offset = offsets_from_csv_file(
-            offsets_csv, file_num_str)
-        print('offsets got for image num: {}, y:{}, x:{}'.format(
-            file_num_str, y_offset, x_offset))
+        screenshot_uuid = os.path.splitext(file_name)[0]
+        is_in = check_uuid_in_screenshots(screenshot_uuid)
+        if is_in:
+            print(f'SKIPPED INGESTING IMAGE: {screenshot_uuid}')
+        else:
+            # TODO: offsets
+            # y_offset, x_offset = offsets_from_csv_file(
+            #     offsets_csv, screenshot_uuid)
+            # print('offsets got for image num: {}, y:{}, x:{}'.format(
+            #     screenshot_uuid, y_offset, x_offset))
 
-        cv_image, encoded_png = P.load_image(screen_file)
-        h, w, *_ = cv_image.shape
-        data = encoded_png.tobytes()
+            cv_image, encoded_png = P.load_image(screen_file)
+            h, w, *_ = cv_image.shape
+            data = encoded_png.tobytes()
 
-        result = insert_screenshot(
-            game, int(w), int(h), y_offset, x_offset, data)
+            result = insert_screenshot(
+                screenshot_uuid, game, int(w), int(h), 0, 0, data)
 
-        #TODO: Load known labels from numpy
-        # image_id = result['image_id']
-        # label = P.load_label(screen_file)
-        # if label is not None:
-        #     ingest_screenshot_tags(label, image_id)
-        #     tag_ctr += 1
-        ctr += 1
+            #TODO: Load known labels from numpy
+            # image_id = result['image_id']
+            # label = P.load_label(screen_file)
+            # if label is not None:
+            #     ingest_screenshot_tags(label, image_id)
+            #     tag_ctr += 1
+            ctr += 1
     return ctr
 
 
@@ -125,51 +136,52 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
 #     pass
 
 
-def ingest_tiles_from_pickle(game, dir):
-    #Should be one .tiles file in game directory
-    pickle_file = glob.glob(os.path.join(dir, game, '*.tiles'))
-    ctr = 0
-    if len(pickle_file) > 0:
-        pickle_file = pickle_file[0]
-        print('pickle loc: ', pickle_file)
-        try:
-            unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
-            for tile in unique_game_tiles:
-                full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
-                data = tile.tobytes()
-                h, w, *_ = full.shape
-                result = insert_tile(game, int(w), int(h), data)
-                ctr += 1
-        except (OSError, IOError, pickle.UnpicklingError) as e:
-            print('Unpickle error! ')
-    return ctr
-
-#
-# def ingest_tile_files(tile_files, game, dir):
-#
-#         file.write('Ingesting {} tiles for game: {}\n'.format(
-#             len(tile_files), game))
+# def ingest_tiles_from_pickle(game, dir):
+#     #Should be one .tiles file in game directory
+#     pickle_file = glob.glob(os.path.join(dir, game, '*.tiles'))
 #     ctr = 0
-#     tag_ctr = 0
-#     for tile_file in tile_files:
-#         file_name = os.path.split(tile_file)[1]
-#         file_num_str = os.path.splitext(file_name)[0]
-#
-#         cv, encoded_png = P.load_image(tile_file)
-#         h, w, c = cv.shape
-#         data = encoded_png.tobytes()
-#         result = insert_tile(game, int(w), int(h), data)
-#         tile_id = result['tile_id']
-#
-#         csv_file = os.path.join(dir, game, 'tile_affordances.csv')
-#         tile_affords = affords_from_csv_file(csv_file, file_num_str)
-#         if tile_affords is not None:
-#             ingest_tile_tags(tile_affords, tile_id)
-#             tag_ctr += 1
-#         ctr += 1
-#
-#         file.write('Ingested {} tiles, {} tags for game: {}\n'.format(
-#             ctr, tag_ctr, game))
+#     if len(pickle_file) > 0:
+#         pickle_file = pickle_file[0]
+#         print('pickle loc: ', pickle_file)
+#         try:
+#             unique_game_tiles = pickle.load(open(pickle_file, 'rb'))
+#             for tile in unique_game_tiles:
+#                 full = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
+#                 data = tile.tobytes()
+#                 h, w, *_ = full.shape
+#                 result = insert_tile(game, int(w), int(h), data)
+#                 ctr += 1
+#         except (OSError, IOError, pickle.UnpicklingError) as e:
+#             print('Unpickle error! ')
+#     return ctr
+
+
+def ingest_tile_files(tile_files, game, dir):
+
+    ctr = 0
+    tag_ctr = 0
+    for tile_file in tile_files:
+        file_name = os.path.split(tile_file)[1]
+        tile_uuid = os.path.splitext(file_name)[0]
+        is_in = check_uuid_in_tiles(tile_uuid)
+        if is_in:
+            print(f'SKIPPED INGESTING TILE: {tile_uuid}')
+        else:
+            cv, encoded_png = P.load_image(tile_file)
+            h, w, c = cv.shape
+            data = encoded_png.tobytes()
+            result = insert_tile(tile_uuid, game, int(w), int(h), data)
+            # tile_id = result['tile_id']
+
+            # TODO TILE AFFORDANCES
+            # csv_file = os.path.join(dir, game, 'tile_affordances.csv')
+            # tile_affords = affords_from_csv_file(csv_file, tile_uuid)
+            # if tile_affords is not None:
+            #     print('TILE HAD AFFORDS')
+            #     # ingest_tile_tags(tile_affords, tile_id)
+            #     tag_ctr += 1
+            ctr += 1
+    return ctr
 
 #
 # def ingest_tile_tags(affords, tile_id):
@@ -215,14 +227,15 @@ def ingest_tiles_from_pickle(game, dir):
 #
 
 
-def insert_screenshot(game, width, height, y_offset, x_offset, image):
+def insert_screenshot(image_uuid, game, width, height, y_offset, x_offset, image):
     cmd = text(
         """INSERT INTO screenshots(image_id, game, width, height, y_offset, x_offset, created_on, data)
-        VALUES(DEFAULT, :g, :w, :h, :y, :x, :dt, :i)
+        VALUES(:u, :g, :w, :h, :y, :x, :dt, :i)
         RETURNING image_id
         """
     )
     cmd = cmd.bindparams(
+        bindparam('u', value=image_uuid, type_=UUID),
         bindparam('g', value=game, type_=String),
         bindparam('w', value=width, type_=Integer),
         bindparam('h', value=height, type_=Integer),
@@ -243,11 +256,11 @@ def insert_screenshot(game, width, height, y_offset, x_offset, image):
 def insert_screenshot_tag(image_id, affordance, tagger, data):
     cmd = text(
         """INSERT INTO screenshot_tags(image_id, affordance, tagger_id, created_on, tags)
-        VALUES(:i, :a, :t, :dt, :d)
+        VALUES(:u, :a, :t, :dt, :d)
         """
     )
     cmd = cmd.bindparams(
-        bindparam('i', value=image_id, type_=Integer),
+        bindparam('u', value=image_id, type_=UUID),
         bindparam('a', value=affordance, type_=Integer),
         bindparam('t', value=tagger, type_=String),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
@@ -256,14 +269,15 @@ def insert_screenshot_tag(image_id, affordance, tagger, data):
     get_connection().execute(cmd)
 
 
-def insert_tile(game, width, height, image):
+def insert_tile(tile_uuid, game, width, height, image):
     cmd = text(
         """INSERT INTO tiles(tile_id, game, width, height, created_on, data)
-        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        VALUES(:u, :g, :w, :h, :dt, :i)
         RETURNING tile_id
         """
     )
     cmd = cmd.bindparams(
+        bindparam('u', value=tile_uuid, type_=UUID),
         bindparam('g', value=game, type_=String),
         bindparam('w', value=width, type_=Integer),
         bindparam('h', value=height, type_=Integer),
@@ -286,7 +300,7 @@ def insert_tile_tag(tile_id, tagger, solid, movable, destroyable, dangerous, get
         """
     )
     cmd = cmd.bindparams(
-        bindparam('ti', value=tile_id, type_=Integer),
+        bindparam('ti', value=tile_id, type_=UUID),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
         bindparam('ta', value=tagger, type_=String),
         bindparam('s', value=solid, type_=Boolean),
@@ -302,14 +316,15 @@ def insert_tile_tag(tile_id, tagger, solid, movable, destroyable, dangerous, get
     get_connection().execute(cmd)
 
 
-def insert_sprite(game, width, height, image):
+def insert_sprite(sprite_uuid, game, width, height, image):
     cmd = text(
         """INSERT INTO sprites(sprite_id, game, width, height, created_on, data)
-        VALUES(DEFAULT, :g, :w, :h, :dt, :i)
+        VALUES(:u, :g, :w, :h, :dt, :i)
         RETURNING sprite_id
         """
     )
     cmd = cmd.bindparams(
+        bindparam('u', value=sprite_uuid, type_=UUID),
         bindparam('g', value=game, type_=String),
         bindparam('w', value=width, type_=Integer),
         bindparam('h', value=height, type_=Integer),
@@ -332,7 +347,7 @@ def insert_sprite_tag(sprite_id, tagger, solid, movable, destroyable, dangerous,
         """
     )
     cmd = cmd.bindparams(
-        bindparam('ti', value=sprite_id, type_=Integer),
+        bindparam('ti', value=sprite_id, type_=UUID),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
         bindparam('ta', value=tagger, type_=String),
         bindparam('s', value=solid, type_=Boolean),
@@ -536,10 +551,36 @@ def get_sprites_by_game(game):
     return output
 
 
+def check_uuid_in_screenshots(id):
+    cmd = text(
+        """SELECT EXISTS(SELECT 1 FROM screenshots where image_id = :i) as "exists"
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('i', value=id, type_=UUID),
+    )
+    res = get_connection().execute(cmd)
+    for row in res:
+        return row['exists']
+
+
+def check_uuid_in_tiles(id):
+    cmd = text(
+        """SELECT EXISTS(SELECT 1 FROM tiles where tile_id = :i) as "exists"
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('i', value=id, type_=UUID),
+    )
+    res = get_connection().execute(cmd)
+    for row in res:
+        return row['exists']
+
+
 def init_db():
     screenshot_table = text(
         """CREATE TABLE IF NOT EXISTS screenshots(
-        image_id serial PRIMARY KEY,
+        image_id UUID PRIMARY KEY,
         game VARCHAR (50) NOT NULL,
         width integer,
         height integer,
@@ -551,7 +592,7 @@ def init_db():
     )
     screenshot_tags_table = text(
         """CREATE TABLE IF NOT EXISTS screenshot_tags(
-        image_id integer NOT NULL,
+        image_id UUID NOT NULL,
         affordance integer NOT NULL,
         tagger_id VARCHAR(50) NOT NULL,
         created_on TIMESTAMP NOT NULL,
@@ -565,7 +606,7 @@ def init_db():
 
     tile_table = text(
         """CREATE TABLE IF NOT EXISTS tiles(
-        tile_id serial PRIMARY KEY,
+        tile_id UUID PRIMARY KEY,
         game VARCHAR (50) NOT NULL,
         width integer,
         height integer,
@@ -575,7 +616,7 @@ def init_db():
     )
     tile_tags_table = text(
         """CREATE TABLE IF NOT EXISTS tile_tags(
-        tile_id integer NOT NULL,
+        tile_id UUID NOT NULL,
         created_on TIMESTAMP NOT NULL,
         tagger_id VARCHAR(50) NOT NULL,
         solid boolean NOT NULL,
@@ -595,7 +636,7 @@ def init_db():
     )
     sprite_table = text(
         """CREATE TABLE IF NOT EXISTS sprites(
-        sprite_id serial PRIMARY KEY,
+        sprite_id UUID PRIMARY KEY,
         game VARCHAR (50) NOT NULL,
         width integer,
         height integer,
@@ -605,7 +646,7 @@ def init_db():
     )
     sprite_tag_table = text(
         """CREATE TABLE IF NOT EXISTS sprite_tags(
-        sprite_id integer NOT NULL,
+        sprite_id UUID NOT NULL,
         created_on TIMESTAMP NOT NULL,
         tagger_id VARCHAR(50) NOT NULL,
         solid boolean NOT NULL,
