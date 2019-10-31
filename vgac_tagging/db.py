@@ -78,7 +78,7 @@ def offsets_from_csv_file(file, file_uuid):
 def ingest_filesystem_data(dir=os.path.join('games')):
     total_ingested = {}
     for game, screenshot_files, tile_files in get_image_files(dir):
-        if game == 'sm3':
+        if game == 'sm3' or game == 'loz':
             num_images = ingest_screenshot_files_with_offsets(
                     screenshot_files, game, dir)
             # num_tiles = ingest_tiles_from_pickle(game, dir)
