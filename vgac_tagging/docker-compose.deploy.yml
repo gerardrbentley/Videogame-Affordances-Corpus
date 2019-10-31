@@ -23,6 +23,8 @@ services:
       - "80:5000"
     depends_on:
       - postgres
+    volumes:
+      - ./games:/games
 
 volumes:
   flask-app-db:
