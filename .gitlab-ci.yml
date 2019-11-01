@@ -17,6 +17,13 @@ vgac_tagging:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - cat $CA_PUB_CERT_CHAIN >> /kaniko/ssl/certs/ca-certificates.crt
     - /kaniko/executor --context $CI_PROJECT_DIR/vgac_tagging --dockerfile $CI_PROJECT_DIR/vgac_tagging/Dockerfile --destination $TAGGER_IMAGE_TAG
+    - POSTGRES_USER=$POSTGRES_USER \
+       POSTGRES_DB=$POSTGRES_DB \
+       POSTGRES_URL=$POSTGRES_URL \
+       POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+       POSTGRES_PORT=$POSTGRES_PORT \
+       TAGGER_IMAGE=$TAGGER_IMAGE_TAG \
+       docker-compose run app -v tagging/games 
   stage: build
 
 deploy-cs1:
