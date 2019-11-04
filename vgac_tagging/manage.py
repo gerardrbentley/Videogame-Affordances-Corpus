@@ -35,7 +35,7 @@ def ingest_files():
     print('CREATING TABLES IF NOT EXIST')
     init_db()
     print('INGESTING DATA FROM /games')
-    ingest_filesystem_data('/games')  # ('../../affordances_corpus/games/')
+    ingest_filesystem_data('../games')  # ('../../affordances_corpus/games/')
     # app.run(debug=True, host='0.0.0.0', port=5000)
 
 
