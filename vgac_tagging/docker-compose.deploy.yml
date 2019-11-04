@@ -24,9 +24,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./games:/games
-    user:
-      1002:1002
+      - ./games:/games:z
 
 volumes:
   flask-app-db:

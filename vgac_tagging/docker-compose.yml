@@ -21,13 +21,15 @@ services:
     volumes:
       - .:/app
       - ../games:/games
+      - ../temp_games:/temp_games
     command: ["./scripts/wait-for-it.sh", "postgres:5432", "--", "./scripts/docker_script.sh"]
     environment:
       - FLASK_ENV=docker
     ports:
-      - "5000:80"
+      - "5000:5000"
     depends_on:
       - postgres
+
 
 volumes:
   flask-app-db:
