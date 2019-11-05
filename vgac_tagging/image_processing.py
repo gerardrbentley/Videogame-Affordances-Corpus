@@ -23,11 +23,22 @@ def from_cv_to_bytes(cv_img):
     return data
 
 
-def from_data_to_cv(db_data):
-    data = db_data.tobytes()
+def from_data_to_cv(db_data, force_grayscale=False):
+    if not isinstance(db_data, bytes):
+        data = db_data.tobytes()
+    else:
+        data = db_data
     encoded_img = np.frombuffer(data, dtype=np.uint8)
     orig_cv = cv2.imdecode(encoded_img, cv2.IMREAD_UNCHANGED)
+    if force_grayscale:
+        orig_cv = cv2.imdecode(encoded_img, cv2.IMREAD_GRAYSCALE)
     return orig_cv, encoded_img
+
+
+def from_bytes_to_grayscale_bytes(bs):
+    encoded_img = np.frombuffer(bs, dtype=np.uint8)
+    gray_cv = cv2.imdecode(encoded_img, cv2.IMREAD_GRAYSCALE)
+    return from_cv_to_bytes(gray_cv)
 
 
 def load_image(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):

@@ -13,7 +13,8 @@ load_dotenv()
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True, static_url_path='')
+    app = Flask(__name__, instance_relative_config=True,
+                static_url_path='', static_folder='/templates')
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
@@ -39,14 +40,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/")
-    def test_serve():
-        return render_template('homepage.html')
-
-    @app.route("/testjs")
-    def static_js():
-        return send_from_directory('templates/js/', 'testscript.js')
-
     #TODO: get from env variables for docker
     POSTGRES_URL = os.getenv('POSTGRES_URL')
     POSTGRES_USER = os.getenv('POSTGRES_USER')
@@ -69,6 +62,5 @@ def create_app(test_config=None):
     # apply the blueprints to the app
 
     app.register_blueprint(tagger.bp)
-    app.add_url_rule("/", endpoint="index")
 
     return app

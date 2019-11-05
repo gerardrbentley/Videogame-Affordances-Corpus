@@ -558,7 +558,7 @@ def get_screenshot_by_id(id):
         """
     )
     cmd = cmd.bindparams(
-        bindparam('id', value=id, type_=Integer),
+        bindparam('id', value=id, type_=String),
     )
     res = get_connection().execute(cmd)
 
@@ -582,7 +582,7 @@ def check_if_already_tagged(image_id, tagger_id):
         """
     )
     cmd = cmd.bindparams(
-        bindparam('id', value=image_id, type_=Integer),
+        bindparam('id', value=image_id, type_=String),
         bindparam('t', value=tagger_id, type_=String)
     )
     res = get_connection().execute(cmd)
@@ -598,7 +598,7 @@ def get_screenshot_affordances(id):
         """
     )
     cmd = cmd.bindparams(
-        bindparam('id', value=id, type_=Integer),
+        bindparam('id', value=id, type_=String),
     )
 
     res = get_connection().execute(cmd)
@@ -635,7 +635,7 @@ def get_tile_affordances(tile_id):
         """
     )
     cmd = cmd.bindparams(
-        bindparam('id', value=tile_id, type_=Integer),
+        bindparam('id', value=tile_id, type_=String),
     )
     res = get_connection().execute(cmd)
     output = []

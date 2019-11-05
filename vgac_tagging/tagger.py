@@ -7,6 +7,7 @@ from flask import request
 from flask import url_for
 from flask import current_app
 from flask import jsonify
+from flask import send_from_directory
 from werkzeug.exceptions import abort
 
 import logging
@@ -32,6 +33,25 @@ def b64_string(data):
     return IMAGE_BASE.format((base64.b64encode(data)).decode('utf-8'))
 
 
+def un_base(input):
+    # logger.debug(f'in {type(input)}: {input}')
+    remove_format = input[22:]
+    # logger.debug(f'no_format {type(remove_format)}: {remove_format}')
+    bs = base64.b64decode(remove_format)
+    # logger.debug(f'bs {type(bs)}: {bs}')
+    to_insert = P.from_bytes_to_grayscale_bytes(bs)
+
+    # cv, _ = P.from_data_to_cv(bs)
+    # cv2.imwrite('/app/from_client.png', cv)
+    # logger.debug(f'cv {type(cv)}: {cv.shape}')
+
+    # gray, _ = P.from_data_to_cv(to_insert)
+    # cv2.imwrite('/app/from_client_gray.png', gray)
+    # logger.debug(f'Processed {type(gray)}: {gray.shape}')
+
+    return to_insert
+
+
 def map_dict(func, dict):
     for k, v in dict.items():
         dict[k] = func(v)
@@ -42,72 +62,30 @@ def encode_tile_from_dict(entry):
     return entry
 
 
-@bp.route("/json")
+@bp.route("/")
+def tag_image():
+    return render_template('base.html')
+
+
+@bp.route("/devjs")
+def static_js():
+    logger.debug('DEV JS CALLED')
+    return send_from_directory('templates/js/', 'scripts.js')
+
+
+@bp.route("/devcss")
+def static_css():
+    logger.debug('DEV CSS CALLED')
+
+    return send_from_directory('templates/css/', 'style.css')
+
+
+@bp.route("/devjson")
 def test_json():
     with open('templates/example_data.json') as file:
         data = json.load(file)
+    logger.debug('DEV JSON CALLED')
     return data
-
-
-@bp.route("/testinsert")
-def test_insert():
-    db.insert_screenshot('test_game', 256, 224)
-    return 'INSERTED'
-
-
-@bp.route('/dev')
-def homepage():
-    tagger_id = 'test_tagger'
-    image_data = db.get_untagged_screenshot(tagger_id)
-    image_id = image_data['image_id']
-
-    game = image_data['game']
-    y_offset = image_data['y_offset']
-    x_offset = image_data['x_offset']
-    # width = image_data['width']
-    # height = image_data['height']
-    data = image_data['data']
-    logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
-
-    orig_cv, encoded_img = P.from_data_to_cv(data)
-    image_string = b64_string(encoded_img)
-    logger.debug('Image stringified')
-
-    # known_game_tiles = db.get_tiles_by_game(game)
-    # logger.debug('Known tiles loaded')
-
-    output = {
-        'tagger_id': tagger_id,
-        'image': image_string,
-        'image_id': image_id,
-    }
-    tags = db.get_screenshot_affordances(image_id)
-    if len(tags) % 9 != 0:
-        logger.debug(f'WRONG NUM OF AFFORDANCES FOR IMAGE: {image_id}')
-        return render_template('homepage.html', **output)
-
-    to_convert = []
-    for affordance in range(9):
-        db_entry = tags[affordance]
-        if db_entry['affordance'] != affordance:
-            logger.debug(
-                f'AFFORDANCE TAG WRONG ORDER {affordance}, for image: {image_id}')
-            return render_template('homepage.html', **output)
-        orig_bw, encoded_tag = P.from_data_to_cv(db_entry['tags'])
-        logger.debug(f'test db tags: {orig_bw.shape}, {type(orig_bw)}')
-        output[P.AFFORDANCES[affordance]] = b64_string(encoded_tag)
-        to_convert.append(orig_bw)
-
-    stacked_array = P.images_to_numpy(to_convert)
-    logger.debug(
-        f'got tag array: {stacked_array.shape}, {type(stacked_array)}, {stacked_array.min()}, {stacked_array.max()}')
-    # if len(to_convert) != 9:
-    #     logger.debug(f'NOT ALL AFFORDANCES FOR IMAGE: {image_id}')
-    #     return 0
-
-    # map_dict(b64_string, to_convert)
-    logger.debug('{}'.format(output.keys()))
-    return render_template('homepage.html', **output)
 
 
 @bp.route("/get_image")
@@ -203,27 +181,36 @@ def save_affordances():
     tagger = data['tagger_id']
     image_id = data['image_id']
     logger.debug("RECEIVED POST")
-    logger.debug(f'{data}')
+    # logger.debug(f'{data}')
     tiles = data['tiles']
-    logger.debug(f'num tiles tagged: {len(tiles)}')
+    insert_count = 0
+    skip_count = 0
     for tile in tiles:
         tile_id = tiles[tile]['tile_id']
-        if int(tile_id) != -1:
-            print('DB INSERT TILE TAGS for id: {}'.format(tile_id))
+        if not isinstance(tile_id, int):
+            logger.debug('DB INSERT TILE TAGS ID: {}'.format(
+                tile_id))
 
             db.insert_tile_tag(tiles[tile]['tile_id'], tagger, tiles[tile]['solid'], tiles[tile]['movable'],
                                tiles[tile]['destroyable'], tiles[tile]['dangerous'], tiles[tile]['gettable'], tiles[tile]['portal'], tiles[tile]['usable'], tiles[tile]['changeable'], tiles[tile]['ui'])
+            insert_count += 1
         else:
-            logger.debug('DID NOT INSERT TAG FOR TILE')
+            skip_count += 1
+
+    logger.debug('INSERTED {} Tile Tags. SKIPPED {} Tiles. SUBMITTED: {}'.format(
+        insert_count, skip_count, len(tiles)))
 
     tag_images = data['tag_images']
-    logger.debug(f'num affordance channels: {len(tag_images)}')
-
+    affordance_count = 0
     for affordance in tag_images:
-        print('DB INSERT IMAGE TAGS for afford:', affordance)
         data = tag_images[affordance]
+        to_insert = un_base(data)
+        affordance_num = P.AFFORDANCES.index(affordance)
+        logger.debug('DB INSERT IMAGE TAGS for afford: {} {}, data type: {}'.format(
+            affordance, affordance_num, type(to_insert)))
         # data = convert_img_to_encoding(tag_img['data'])
-        # db.insert_screenshot_tag(image_id, afford, tagger, data)
+        db.insert_screenshot_tag(image_id, affordance_num, tagger, to_insert)
+    logger.debug(f'num affordance channels: {len(tag_images)}')
 
     output = {
         'Success': True,
@@ -231,6 +218,69 @@ def save_affordances():
     }
 
     return output
+
+
+@bp.route("/testinsert")
+def test_insert():
+    db.insert_screenshot('test_game', 256, 224)
+    return 'INSERTED'
+
+
+@bp.route('/dev')
+def homepage():
+    tagger_id = 'test_tagger'
+    # image_data = db.get_untagged_screenshot(tagger_id)
+    image_data = db.get_screenshot_by_id(
+        'c7fb2184-c342-4a1a-be59-e7c88f9ea15d')
+    image_id = image_data['image_id']
+
+    game = image_data['game']
+    y_offset = image_data['y_offset']
+    x_offset = image_data['x_offset']
+    # width = image_data['width']
+    # height = image_data['height']
+    data = image_data['data']
+    logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
+
+    orig_cv, encoded_img = P.from_data_to_cv(data)
+    image_string = b64_string(encoded_img)
+    logger.debug('Image stringified')
+
+    # known_game_tiles = db.get_tiles_by_game(game)
+    # logger.debug('Known tiles loaded')
+
+    output = {
+        'tagger_id': tagger_id,
+        'image': image_string,
+        'image_id': image_id,
+    }
+    tags = db.get_screenshot_affordances(image_id)
+    if len(tags) % 9 != 0:
+        logger.debug(f'WRONG NUM OF AFFORDANCES FOR IMAGE: {image_id}')
+        return render_template('homepage.html', **output)
+
+    to_convert = []
+    for affordance in range(9):
+        db_entry = tags[affordance + 9]
+        if db_entry['affordance'] % 9 != affordance:
+            logger.debug(
+                f'AFFORDANCE TAG WRONG ORDER {affordance}, for image: {image_id}')
+            return render_template('homepage.html', **output)
+        orig_bw, encoded_tag = P.from_data_to_cv(db_entry['tags'])
+        logger.debug(f'test db tags: {orig_bw.shape}, {type(orig_bw)}')
+        output[P.AFFORDANCES[affordance]] = b64_string(encoded_tag)
+        to_convert.append(orig_bw)
+
+    stacked_array = P.images_to_numpy(to_convert)
+    logger.debug(
+        f'got tag array: {stacked_array.shape}, {type(stacked_array)}, {stacked_array.min()}, {stacked_array.max()}')
+    # if len(to_convert) != 9:
+    #     logger.debug(f'NOT ALL AFFORDANCES FOR IMAGE: {image_id}')
+    #     return 0
+
+    # map_dict(b64_string, to_convert)
+    logger.debug('{}'.format(output.keys()))
+    return render_template('homepage.html', **output)
 
 
 """

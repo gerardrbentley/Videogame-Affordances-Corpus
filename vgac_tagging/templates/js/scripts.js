@@ -384,10 +384,10 @@ checkC.addEventListener('change', function(e)
 
 */
 //_____________________________________________________________________________________
-var mydata;
+var mydata = {};
 var num = 0;
-var outdata;
 var output; //
+var out_tiles = {};
 //_________________________________________
 
 var i;//replace its name
@@ -592,50 +592,82 @@ function myFunction()
 */
 //__________________________________________________________________________________load the script
 
-(function()
-{
-    // Load the script
-    var script = document.createElement("SCRIPT");
-    script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
-    script.type = 'text/javascript';
-    script.onload = function()
-    {
-        var $ = window.jQuery;
-        // Use $ here...
-        $.getJSON("example_data.json", function(json)
-        {
-            mydata = json;
-            //console.log(json); // this will show the info it in firebug console
-            output = //get tagger id from somewhere later (?)
-            {
-                "tagger_id":"TestTagger",
-                "image_id":mydata['output']['image_id']
-            };
-            for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
-            {
-                //console.log('inside for');
-                var tile_index = 'tile_' + index;
-                var act_tile = mydata['output']['tiles'][tile_index];
-                //console.log(act_tile);
-                output[tile_index] =
-                {
-                    "tile_id": act_tile['tile_id'],
-                    "solid":0,
-                    "movable":0,
-                    "destroyable":0,
-                    "dangerous":0,
-                    "gettable":0,
-                    "portal":0,
-                    "usable":0,
-                    "changeable":0,
-                    "ui":0
-                };
-            }
-        });
-    };
-    document.getElementsByTagName("head")[0].appendChild(script);
+// (function()
+// {
+//     // Load the script
+//     var script = document.createElement("SCRIPT");
+//     script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+//     script.type = 'text/javascript';
+//     script.onload = function()
+//     {
+//         var $ = window.jQuery;
+//         // Use $ here...
+//         // $.getJSON("example_data.json", function(json)
+//         // {
+//         //     mydata = json;
+//         //     //console.log(json); // this will show the info it in firebug console
+//         //     output = //get tagger id from somewhere later (?)
+//         //     {
+//         //         "tagger_id":"TestTagger",
+//         //         "image_id":mydata['output']['image_id']
+//         //     };
+//         //     for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
+//         //     {
+//         //         //console.log('inside for');
+//         //         var tile_index = 'tile_' + index;
+//         //         var act_tile = mydata['output']['tiles'][tile_index];
+//         //         //console.log(act_tile);
+//         //         out_tiles[tile_index] =
+//         //         {
+//         //             "tile_id": act_tile['tile_id'],
+//         //             "solid":0,
+//         //             "movable":0,
+//         //             "destroyable":0,
+//         //             "dangerous":0,
+//         //             "gettable":0,
+//         //             "portal":0,
+//         //             "usable":0,
+//         //             "changeable":0,
+//         //             "ui":0
+//         //         };
+//         //     }
+//         // });
+//         $.get("/devjson", function(json)
+//         {
+//             mydata = json;
+//             //console.log(json); // this will show the info it in firebug console
+//             output = //get tagger id from somewhere later (?)
+//             {
+//                 "tagger_id":"TestTagger",
+//                 "image_id":mydata['output']['image_id']
+//             };
+//             for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
+//             {
+//                 //console.log('inside for');
+//                 var tile_index = 'tile_' + index;
+//                 var act_tile = mydata['output']['tiles'][tile_index];
+//                 //console.log(act_tile);
+//                 out_tiles[tile_index] =
+//                 {
+//                     "tile_id": act_tile['tile_id'],
+//                     "solid":0,
+//                     "movable":0,
+//                     "destroyable":0,
+//                     "dangerous":0,
+//                     "gettable":0,
+//                     "portal":0,
+//                     "usable":0,
+//                     "changeable":0,
+//                     "ui":0
+//                 };
+//             }
+//         });
+//     };
+//     document.getElementsByTagName("head")[0].appendChild(script);
+//
+// })();
 
-})();
+
 
 //__________________________________________________________________________________
 
@@ -971,9 +1003,82 @@ function getMousePos(canvas, evt)
 
 */
 //__________________________________________________________________________________load the stuff
-
+var $ = window.jQuery;
 window.addEventListener('load', function()
 {
+    console.log('on load')
+    fetch_data();
+    // var solid_img = document.getElementById('solid');
+    // solid_img.src = mydata['output']['image'];
+    // var solid_img = document.getElementById('solid');
+    // solid_img.src = mydata['output']['image'];
+    // var mov_img = document.getElementById('movable');
+    // mov_img.src = mydata['output']['image'];
+    // var dest_img = document.getElementById('destroyable');
+    // dest_img.src = mydata['output']['image'];
+    // var dang_img = document.getElementById('dangerous');
+    // dang_img.src = mydata['output']['image'];
+    // var get_img = document.getElementById('gettable');
+    // get_img.src = mydata['output']['image'];
+    // var port_img = document.getElementById('portal');
+    // port_img.src = mydata['output']['image'];
+    // var us_img = document.getElementById('usable');
+    // us_img.src = mydata['output']['image'];
+    // var chang_img = document.getElementById('changeable');
+    // chang_img.src = mydata['output']['image'];
+    // var ui_img = document.getElementById('ui');
+    // ui_img.src = mydata['output']['image'];
+    // var scrn_img = document.getElementById('screenshot_preview');
+    // scrn_img.src = mydata['output']['image'];
+    // var tile_tmp = document.getElementById('tile');
+    // tile_tmp.src = mydata['output']['tiles']['tile_0']['tile_data'];
+    // var poses = mydata['output']['tiles']['tile_' + num]['locations'];
+    // for(i = 0; i < Object.keys(poses).length; i++)
+    // {
+    //     pos_x = poses['location_' + i]['x'];
+    //     pos_y = poses['location_' + i]['y'];
+    //     draw(pos_x, pos_y, canvas_draw);
+    // }
+})
+
+function fetch_data(){
+  console.log(mydata)
+  $.get("/get_image", function(json)
+  {
+      mydata = json;
+      console.log(mydata); // this will show the info it in firebug console
+      output = //get tagger id from somewhere later (?)
+      {
+          "tagger_id":"TestTagger",
+          "image_id":mydata['output']['image_id']
+      };
+
+      for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
+      {
+          //console.log('inside for');
+          var tile_index = 'tile_' + index;
+          var act_tile = mydata['output']['tiles'][tile_index];
+          //console.log(act_tile);
+          out_tiles[tile_index] =
+          {
+              "tile_id": act_tile['tile_id'],
+              "solid":0,
+              "movable":0,
+              "destroyable":0,
+              "dangerous":0,
+              "gettable":0,
+              "portal":0,
+              "usable":0,
+              "changeable":0,
+              "ui":0
+          };
+       }
+       console.log(mydata)
+       update_images()
+  });
+}
+
+function update_images(){
     var solid_img = document.getElementById('solid');
     solid_img.src = mydata['output']['image'];
     var solid_img = document.getElementById('solid');
@@ -1005,7 +1110,23 @@ window.addEventListener('load', function()
         pos_y = poses['location_' + i]['y'];
         draw(pos_x, pos_y, canvas_draw);
     }
-})
+}
+
+function send_output_to_server(){
+    console.log('Space pressed submitting')
+    console.log(output)
+
+    $.ajax({
+      url: "/submit_tags",
+      type: "post",
+      data: JSON.stringify(output),
+      contentType: "application/json",
+      success: function (data) {
+        console.log('Sent labels to server /submit_tags')
+        console.log(data)
+      }
+    });
+}
 //__________________________________________________________________________________
 /*
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1130,6 +1251,8 @@ document.onkeydown = function(event)
                 "changeable":canvas_changeable.toDataURL(),
                 "ui":canvas_ui.toDataURL()
             }
+            output["tiles"] = out_tiles
+            send_output_to_server();
         break;
         //____________________vvv keypress to draw on affordances squares vvv
         case 81: //q
@@ -1141,7 +1264,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_solid);
             }
-            output['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
+            out_tiles['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
             checkQ.checked = true;
             //also replace all tmp with num
         break;
@@ -1155,7 +1278,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_movable);
             }
-            output['tile_'+num]['movable'] = 1;
+            out_tiles['tile_'+num]['movable'] = 1;
             checkW.checked = true;
         break;
 
@@ -1167,7 +1290,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_destroyable);
             }
-            output['tile_'+num]['destroyable'] = 1;
+            out_tiles['tile_'+num]['destroyable'] = 1;
             checkE.checked = true;
         break;
         case 65: //a
@@ -1178,7 +1301,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_dangerous);
             }
-            output['tile_'+num]['dangerous'] = 1;
+            out_tiles['tile_'+num]['dangerous'] = 1;
             checkA.checked = true;
         break;
         case 83: //s
@@ -1189,7 +1312,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_gettable);
             }
-            output['tile_'+num]['gettable'] = 1;
+            out_tiles['tile_'+num]['gettable'] = 1;
             checkS.checked = true;
         break;
         case 68: //d
@@ -1200,7 +1323,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_portal);
             }
-            output['tile_'+num]['portal'] = 1;
+            out_tiles['tile_'+num]['portal'] = 1;
             checkD.checked = true;
         break;
 
@@ -1212,7 +1335,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_usable);
             }
-            output['tile_'+num]['usable'] = 1;
+            out_tiles['tile_'+num]['usable'] = 1;
             checkZ.checked = true;
         break;
 
@@ -1224,7 +1347,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_changeable);
             }
-            output['tile_'+num]['changeable'] = 1;
+            out_tiles['tile_'+num]['changeable'] = 1;
             checkX.checked = true;
         break;
 
@@ -1236,7 +1359,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_ui);
             }
-            output['tile_'+num]['ui'] = 1;
+            out_tiles['tile_'+num]['ui'] = 1;
             checkC.checked = true;
         break;
 
@@ -1255,15 +1378,15 @@ document.onkeydown = function(event)
                 draw_b(pos_x, pos_y, canvas_portal, 16, 16);
                 draw_b(pos_x, pos_y, canvas_usable, 16, 16);
                 draw_b(pos_x, pos_y, canvas_changeable, 16, 16);
-                output['tile_'+num]['solid'] = 0;
-                output['tile_'+num]['movable'] = 0;
-                output['tile_'+num]['destroyable'] = 0;
-                output['tile_'+num]['dangerous'] = 0;
-                output['tile_'+num]['gettable'] = 0;
-                output['tile_'+num]['portal'] = 0;
-                output['tile_'+num]['usable'] = 0;
-                output['tile_'+num]['changeable'] = 0;
-                output['tile_'+num]['ui'] = 0;
+                out_tiles['tile_'+num]['solid'] = 0;
+                out_tiles['tile_'+num]['movable'] = 0;
+                out_tiles['tile_'+num]['destroyable'] = 0;
+                out_tiles['tile_'+num]['dangerous'] = 0;
+                out_tiles['tile_'+num]['gettable'] = 0;
+                out_tiles['tile_'+num]['portal'] = 0;
+                out_tiles['tile_'+num]['usable'] = 0;
+                out_tiles['tile_'+num]['changeable'] = 0;
+                out_tiles['tile_'+num]['ui'] = 0;
                 checkQ.checked = false;
                 checkW.checked = false;
                 checkE.checked = false;
