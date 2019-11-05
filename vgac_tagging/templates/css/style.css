@@ -1,11 +1,30 @@
-#title h1 {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 30pt;
+@import url(https://fonts.googleapis.com/css?family=Mr+Dafoe);
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web:900);
+@import url(https://fonts.googleapis.com/css?family=Righteous);
+@import url(https://fonts.googleapis.com/css?family=Candal);
+
+@import url(https://fonts.googleapis.com/css?family=Permanent+Marker);
+
+@import url(https://fonts.googleapis.com/css?family=Monoton);
+body {
+    background-color: #f5f2e6;
+}
+
+#title h1 { 
     text-align: center;
+    background-image: -webkit-linear-gradient(#378DBC 0%, #B6E8F1 46%, #ffffff 50%, #32120E 54%, #FFC488 58%, #582C11 90%, #EC9B4E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 4px #000000;
+    font-size: 60px;
+    font-family: 'Titillium Web', sans-serif;
+    font-style: italic;
+    line-height: 1;
 }
 
 .grid 
 {
+    
     display: grid;
     height: 798px;
     width: 808px;
@@ -20,14 +39,20 @@
     top:0; left:0;
 }
 
-.grid img:hover{
-    opacity: 0.5;
+.grid .container:hover
+{
+    z-index: 99999;
+    transform: scale(2.5);
 }
+
+
 
 .name_af
 {
     position: absolute;
-    top: -30px;
+    top: 229px;
+    left: 80px;
+    color: #605833; font-family: Georgia, arial, serif; 
 }
 .container 
 {
@@ -36,9 +61,10 @@
     height: 224px;
 }
 
+
 #screen_preview {
     left: 900px;
-    top: 100px;
+    top: 140px;
     position: absolute;
 
 }
@@ -52,27 +78,200 @@
 #tagging img{
     position: absolute;
     left: 1200px;
-    top: 125px;
+    top: 140px;
 }
 
-#gridActions img{
+#instructions 
+{
+    font-family: Georgia, arial, serif; font-size: 16px;
+    position: absolute;
+    left: 1200px;
+    top: 286px;
+}
+
+#instructions_e
+{
+    color: #605833; font-family: Georgia, arial, serif; 
+    position: absolute;
+    left: 1200px;
+    top: 330px;
+}
+
+#buttons
+{
     position: absolute;
     left: 900px;
-    top: 350px;
+    top: 409px;
 }
 
-#instructions {
+#grid_buttons 
+{
     position: absolute;
     left: 900px;
-    top: 400px;
+    top: 485px;
 }
 
-
-  .buttons {
+#grid_controls 
+{
     position: absolute;
-    left: 1225px;
-    top: 300px;
-    width: 81px;
-    margin: 50px auto;
-    padding-left: 5px;
-  }
+    left: 900px;
+    top: 561px;
+}
+
+#b_save 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_save:hover {opacity: 1}
+
+#b_reset 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_reset:hover {opacity: 1}
+
+#b_grid 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid:hover {opacity: 1}
+
+#b_grid_save 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    padding-left: 16px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_save:hover {opacity: 1}
+
+#b_grid_reset 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    padding-left: 10px;
+    width:128px;
+    text-align: right;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_reset:hover {opacity: 1}
+
+
+#b_grid_up 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_up:hover {opacity: 1}
+
+
+
+#b_grid_left 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_left:hover {opacity: 1}
+
+#b_grid_right 
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_right:hover {opacity: 1}
+
+#b_grid_down
+{
+    border: none;
+    color: white;
+    padding: 22px;
+    width:128px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 0px;
+    opacity: 0.7;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+#b_grid_down:hover {opacity: 1}
