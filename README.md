@@ -17,21 +17,21 @@ Link to Paper: [EXAG 2019](http://www.exag.org/papers/EXAG_2019_paper_13.pdf)
 
 
 ## Docker Install
-The easiest way to get up and running is with Docker, these instructions will focus on that set up. Clone this repository's url
+The easiest way to get up and running is with Docker, these instructions will focus on that set up. Clone this repository's url and unzip vgac_current.zip (most recent dataset) so that the `games` directory is in the same level as the zip (double-click on mac, open in file manager and drag games folder on linux). This contains folders for each screenshot named by UUID; The screenshots are in .png format named with the UUID and affordance maps are in 9 channel .npy files named after the tagger_user. Then CD into the vgac_tagging folder.
 
 ```
 git clone GITHUBURL YOUR_FOLDER_NAME
 
-cd YOUR_FOLDER_NAME/vgac_tagging
+cd YOUR_FOLDER_NAME
+
+unzip vgac_current.zip
+
+cd vgac_tagging
 ```
 
-This folder should contain the docker-compose.yml file and `vgac_current.zip` (among everything else)
+This folder should contain the docker-compose.yml file (among other things)
 
-The most recent dataset is available in the zip file `vgac_current.zip`; unzip it so that the `games` directory is in the same level as the zip (double-click on mac, open in file manager and drag games folder on linux).
-
-This contains game screenshots in .png format and affordance maps for legend of zelda and super mario 3 images in 9 channel .npy files.
-
-Our current tagging process uses only tiles and screenshots. It requires pre-processing of tiles to be matched into images, currently only the super mario 3 tiles are complete and in pickled form. Tile and sprite ingestion from image files is possible, but not cleanly implemented.
+Our current tagging process uses only tiles and screenshots. It requires pre-processing of tiles to be matched into images, currently only the super mario 3 and loz tiles are complete. Sprite ingestion from image files is possible, but not cleanly implemented.
 
 To initialize the database and ingest all screenshots and tiles from the directory `games` (see directory structure below), run the following command (may or may not need sudo depending on your docker set up). Running this after database ingestion should ignore all previously added screenshots and tiles and run the server
 
@@ -54,7 +54,7 @@ project_name
 |___vgac_tagging
 |   |   manage.py
 |   |   requirements.txt
-|   |   Dockerfile-dev
+|   |   Dockerfile
 |   |   docker-compose.yml
 |   |
 |   |___scripts   
@@ -63,13 +63,16 @@ project_name
 |   |
 |___games
 |   |___sm3
-|   |   |   sm3_min_unique_lengths_offsets.csv
 |   |   |
-|   |   |___img
-|   |   |   |   12341234-UUID-56785678.png
+|   |   |___screenshots
+|   |   |   |___12341234-UUID-56785678
+|   |   |       |   12341234-UUID-56785678.png
+|   |   |       |   12341234-UUID-56785678.json
+|   |   |       |   tagger_name.npy
 |   |   |
-|   |   |___tile_img
+|   |   |___tiles
 |   |   |   |   43214321-UUID-87658765.png
+|   |   |   |   tile_affordances.csv
 
 ```
 
