@@ -209,7 +209,8 @@ def unique_tiles_all_offsets(args):
     # print(type(image))
     potential_offsets = [(y, x) for x in range(0, args.grid_size)
                          for y in range(0, args.grid_size)]
-    # potential_offsets = [(0, 0), (1, 0)]
+    if args.only_zero_zero:
+        potential_offsets = [(0, 0)]
     out = []
     for (y, x) in potential_offsets:
         out.append(get_unique_tiles(np.copy(orig_image),
@@ -249,14 +250,15 @@ def parse_args():
     parser.add_argument('--file', type=str, default='./0.png')
     parser.add_argument('--visualize', action='store_true')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--only-zero-zero', action='store_true')
     parser.add_argument('--game', type=str, default='sm3')
     parser.add_argument('--dest', type=str, default='output')
     parser.add_argument('--k', type=int,
                         default=5, help='num tile sets to select')
     parser.add_argument('--grid-size', type=int,
-                        default=16, help='grid square size')
+                        default=8, help='grid square size')
     parser.add_argument('--ui-height', type=int,
-                        default=40, help='ignore this range')
+                        default=0, help='ignore this range')
     parser.add_argument('--ui-position', type=str,
                         default='bot', help='ui top or bot')
     parser.add_argument("--model_def", type=str,
@@ -298,7 +300,10 @@ if __name__ == '__main__':
     tile_sets = unique_tiles_all_offsets(args)
 
     #Prune best k sets
-    res = k_best_sets(tile_sets, args.k)
+    if args.only_zero_zero:
+        res = k_best_sets(tile_sets, 1)
+    else:
+        res = k_best_sets(tile_sets, args.k)
 
     os.makedirs(f'{args.dest}/{args.game}', exist_ok=True)
     pickle.dump(

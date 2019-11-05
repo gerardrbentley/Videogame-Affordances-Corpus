@@ -55,10 +55,59 @@ def test_insert():
     return 'INSERTED'
 
 
-@bp.route('/home')
+@bp.route('/dev')
 def homepage():
     tagger_id = 'test_tagger'
-    return render_template('homepage.html', tagger_id=tagger_id)
+    image_data = db.get_untagged_screenshot(tagger_id)
+    image_id = image_data['image_id']
+
+    game = image_data['game']
+    y_offset = image_data['y_offset']
+    x_offset = image_data['x_offset']
+    # width = image_data['width']
+    # height = image_data['height']
+    data = image_data['data']
+    logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
+
+    orig_cv, encoded_img = P.from_data_to_cv(data)
+    image_string = b64_string(encoded_img)
+    logger.debug('Image stringified')
+
+    # known_game_tiles = db.get_tiles_by_game(game)
+    # logger.debug('Known tiles loaded')
+
+    output = {
+        'tagger_id': tagger_id,
+        'image': image_string,
+        'image_id': image_id,
+    }
+    tags = db.get_screenshot_affordances(image_id)
+    if len(tags) % 9 != 0:
+        logger.debug(f'WRONG NUM OF AFFORDANCES FOR IMAGE: {image_id}')
+        return render_template('homepage.html', **output)
+
+    to_convert = []
+    for affordance in range(9):
+        db_entry = tags[affordance]
+        if db_entry['affordance'] != affordance:
+            logger.debug(
+                f'AFFORDANCE TAG WRONG ORDER {affordance}, for image: {image_id}')
+            return render_template('homepage.html', **output)
+        orig_bw, encoded_tag = P.from_data_to_cv(db_entry['tags'])
+        logger.debug(f'test db tags: {orig_bw.shape}, {type(orig_bw)}')
+        output[P.AFFORDANCES[affordance]] = b64_string(encoded_tag)
+        to_convert.append(orig_bw)
+
+    stacked_array = P.images_to_numpy(to_convert)
+    logger.debug(
+        f'got tag array: {stacked_array.shape}, {type(stacked_array)}, {stacked_array.min()}, {stacked_array.max()}')
+    # if len(to_convert) != 9:
+    #     logger.debug(f'NOT ALL AFFORDANCES FOR IMAGE: {image_id}')
+    #     return 0
+
+    # map_dict(b64_string, to_convert)
+    logger.debug('{}'.format(output.keys()))
+    return render_template('homepage.html', **output)
 
 
 @bp.route("/get_image")

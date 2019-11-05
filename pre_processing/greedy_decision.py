@@ -4,6 +4,7 @@ import glob
 import pickle
 import argparse
 import uuid
+import json
 
 import cv2
 import matplotlib.pyplot as plt
@@ -69,7 +70,9 @@ def main(args):
     tset_lens = []
     y_offsets = []
     x_offsets = []
-    bincount = [0, 0, 0, 0, 0]
+    bincount = []
+    for i in range(args.k):
+        bincount.append(0)
     i = 0
     for file_name, curr_options in tile_sets.items():
 
@@ -109,6 +112,12 @@ def main(args):
         y_offsets.append(curr_options[best_idx]['y_offset'])
         x_offsets.append(curr_options[best_idx]['x_offset'])
 
+        meta = {'y_offset': curr_options[best_idx]['y_offset'],
+                'x_offset': curr_options[best_idx]['x_offset']}
+        with open(os.path.join(
+                args.games_dir, args.game, 'screenshots', file_name, f'{file_name}.json'), 'w') as file:
+            json.dump(meta, file)
+
         greedy_set = updated_greedy
     print('bins: ', bincount)
 
@@ -117,11 +126,13 @@ def main(args):
     df.to_csv(f'{CURR_GAME}_min_unique_lengths_offsets.csv', index=False)
 
     length = len(greedy_set)
-    os.makedirs(f'{args.pickle_dir}/{args.game}_tile_img', exist_ok=True)
+    os.makedirs(f'{args.pickle_dir}/{args.game}/tiles', exist_ok=True)
     for tile in greedy_set:
         full_tile = cv2.imdecode(tile, cv2.IMREAD_UNCHANGED)
         new_id = str(uuid.uuid4())
-        cv2.imwrite(f'{args.game}_tile_img/{new_id}.png', full_tile)
+        # print('saving: ', new_id)
+        cv2.imwrite(
+            f'{args.pickle_dir}/{args.game}/tiles/{new_id}.png', full_tile)
 
     # pickle.dump(greedy_set, open(
     #     f'{args.game}_unique_set_{length}.tiles', 'wb'))
@@ -141,6 +152,7 @@ def parse_args():
                         help='path to tiles folder')
     parser.add_argument('--game', type=str, default='sm3',
                         help='game name')
+    parser.add_argument('--games-dir', type=str, default='../temp_games')
     parser.add_argument('--grid-size', type=int,
                         default=8, help='grid square size')
     parser.add_argument('--k', type=int,

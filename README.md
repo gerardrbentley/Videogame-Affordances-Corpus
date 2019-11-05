@@ -61,15 +61,15 @@ project_name
 |   |   |   docker_ingest.sh
 |   |   |   docker_script.sh
 |   |
-|   |___games
-|       |___sm3
-|       |   |   sm3_min_unique_lengths_offsets.csv
-|       |   |
-|       |   |___img
-|       |   |   |   12341234-UUID-56785678.png
-|       |   |
-|       |   |___tile_img
-|       |   |   |   43214321-UUID-87658765.png
+|___games
+|   |___sm3
+|   |   |   sm3_min_unique_lengths_offsets.csv
+|   |   |
+|   |   |___img
+|   |   |   |   12341234-UUID-56785678.png
+|   |   |
+|   |   |___tile_img
+|   |   |   |   43214321-UUID-87658765.png
 
 ```
 

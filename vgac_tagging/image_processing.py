@@ -57,12 +57,23 @@ def load_sprite(sprite_file=os.path.join('..', 'affordances_corpus', 'games', 'l
 
 
 def load_label(image_file=os.path.join('..', 'affordances_corpus', 'games', 'loz', 'img', '0.png')):
-    label_file = image_file.replace('img', 'label').replace('png', 'npy')
+    label_file = image_file.replace(
+        'screenshots', 'labels').replace('png', 'npy')
     if os.path.isfile(label_file):
-        # print('Label File Found')
+        print('Label File Found {}'.format(label_file))
         stacked_array = np.load(label_file)
     else:
-        # print('New Label File')
+        print('New Label File for {}'.format(label_file))
+        stacked_array = None
+    return stacked_array
+
+
+def load_label_from_tagger(label_file):
+    if os.path.isfile(label_file):
+        print('Label File Found {}'.format(label_file))
+        stacked_array = np.load(label_file)
+    else:
+        print('New Label File for {}'.format(label_file))
         stacked_array = None
     return stacked_array
 
@@ -74,6 +85,17 @@ def numpy_to_images(arr):
         one_channel = arr[:, :, i].copy() * 255
         _, image_buffer = cv2.imencode('.png', one_channel)
         output[AFFORDANCES[i]] = image_buffer
+    return output
+
+
+def images_to_numpy(affordance_images):
+    height, width, *_ = affordance_images[0].shape
+    output = np.zeros((height, width, 9))
+    print(
+        f'GEN numpy array of dims {output.shape} for aff_image {affordance_images[0].shape}')
+    for i in range(9):
+        one_channel = affordance_images[i].copy()
+        output[:, :, i] = one_channel // 255
     return output
 
 

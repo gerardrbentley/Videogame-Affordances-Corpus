@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 import numpy as np
 import csv
+import json
 import pickle
 
 from flask import current_app
@@ -19,16 +20,13 @@ import image_processing as P
 import cv2
 
 
-''' Lists all png images with file structure DIR/GAME_NAME/img/0.png'''
-
-
-def get_image_files(dir=os.path.join('games')):
+def get_image_files(dir=os.path.join('/games')):
     out_files = []
     for game in list_games(dir):
         game_screenshot_files = glob.glob(
-            os.path.join(dir, game, 'img', '*.png'))
+            os.path.join(dir, game, 'screenshots', '*.png'))
         game_tile_files = glob.glob(
-            os.path.join(dir, game, 'tile_img', '*.png'))
+            os.path.join(dir, game, 'tiles', '*.png'))
         # game_sprite_files = glob.glob(
         #     os.path.join(dir, game, 'sprite', '*.png'))
         out_files.append(
@@ -37,7 +35,7 @@ def get_image_files(dir=os.path.join('games')):
     return out_files
 
 
-def list_games(dir=os.path.join('games')):
+def list_games(dir=os.path.join('/games')):
     try:
         games = next(os.walk(dir))[1]
     except (StopIteration):
@@ -50,17 +48,13 @@ def curr_timestamp():
     return (datetime.now())
 
 
-def affords_from_csv_file(file, file_num_str):
+def affords_from_csv_file(file, file_name):
     if os.path.isfile(file):
         with open(file, mode='r') as tile_csv:
             csv_reader = csv.DictReader(tile_csv)
             for row in csv_reader:
-                if row['file'] == file_num_str:
-                    out = []
-                    for x in row:
-                        if x != 'file':
-                            out.append(bool(int(row[x])))
-                    return out
+                if row['file_name'] == file_name:
+                    return row
     return None
 
 
@@ -75,17 +69,28 @@ def offsets_from_csv_file(file, file_uuid):
     return (0, 0)
 
 
-def ingest_filesystem_data(dir=os.path.join('games')):
+def offsets_from_json(screenshots_dir, file_uuid):
+    pth = os.path.join(screenshots_dir, file_uuid, f'{file_uuid}.json')
+    if os.path.isfile(pth):
+        with open(pth, mode='r') as offsets_file:
+            data = json.load(offsets_file)
+            return (data['y_offset'], data['x_offset'])
+    return (0, 0)
+
+
+def ingest_filesystem_data(dir=os.path.join('/games')):
     total_ingested = {}
     for game, screenshot_files, tile_files in get_image_files(dir):
-        if game == 'sm3' or game == 'loz':
-            num_images = ingest_screenshot_files_with_offsets(
-                    screenshot_files, game, dir)
-            # num_tiles = ingest_tiles_from_pickle(game, dir)
-            num_tiles = ingest_tile_files(tile_files, game, dir)
-            # ingest_sprite_files(sprite_files, game), dir
-            total_ingested[game] = {
-                    'num_images': num_images, 'num_tiles': num_tiles}
+        # num_images, num_tags = ingest_screenshot_files_with_offsets(
+        #         screenshot_files, game, dir)
+        num_images, num_tags = ingest_screenshots(
+            game, os.path.join(dir, game, 'screenshots'))
+
+        # num_tiles = ingest_tiles_from_pickle(game, dir)
+        num_tiles = ingest_tile_files(tile_files, game, dir)
+        # ingest_sprite_files(sprite_files, game), dir
+        total_ingested[game] = {
+                'num_images': num_images, 'num_screenshot_tags': num_tags, 'num_tiles': num_tiles}
     print('TOTALS: {}'.format(total_ingested))
 
 
@@ -116,24 +121,151 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
                 screenshot_uuid, game, int(w), int(h), y_offset, x_offset, data)
 
             #TODO: Load known labels from numpy
-            # image_id = result['image_id']
-            # label = P.load_label(screen_file)
-            # if label is not None:
-            #     ingest_screenshot_tags(label, image_id)
-            #     tag_ctr += 1
+            labels = P.load_label(
+                screen_file)
+            if labels is not None:
+                ingest_screenshot_tags(labels, screenshot_uuid)
+                tag_ctr += 1
             ctr += 1
-    return ctr
+    return ctr, tag_ctr
 
 
-#
-# def ingest_screenshot_tags(stacked_array, image_id):
-#     channels_dict = P.numpy_to_images(stacked_array)
-#     tagger = 'ingested'
-#     for i, affordance in enumerate(P.AFFORDANCES):
-#         encoded_channel = channels_dict[affordance]
-#         channel_data = encoded_channel.tobytes()
-#         insert_screenshot_tag(image_id, i, tagger, channel_data)
-#     pass
+def ingest_screenshots(game, screenshots_dir):
+    ctr = 0
+    tag_ctr = 0
+
+    image_folders = next(os.walk(screenshots_dir))[1]
+
+    for screenshot_uuid in image_folders:
+        screenshot_file = os.path.join(
+            screenshots_dir, screenshot_uuid, f'{screenshot_uuid}.png')
+        # screenshot_uuid = os.path.splitext(file_name)[0]
+        is_in = check_uuid_in_screenshots(screenshot_uuid)
+        if is_in:
+            print(f'SKIPPED INGESTING IMAGE: {screenshot_uuid}')
+        else:
+            y_offset, x_offset = offsets_from_json(
+                screenshots_dir, screenshot_uuid)
+            print('offsets got for image num: {}, y:{}, x:{}'.format(
+                screenshot_uuid, y_offset, x_offset))
+
+            cv_image, encoded_png = P.load_image(screenshot_file)
+            h, w, *_ = cv_image.shape
+            data = encoded_png.tobytes()
+
+            result = insert_screenshot(
+                screenshot_uuid, game, int(w), int(h), y_offset, x_offset, data)
+
+            #TODO: Load known labels from numpy
+            label_files = glob.glob(os.path.join(
+                screenshots_dir, screenshot_uuid, "*.npy"))
+            if len(label_files) > 0:
+                for label_file in label_files:
+                    tagger_npy = os.path.split(label_file)[1]
+                    tagger = os.path.splitext(tagger_npy)[0]
+                    label = P.load_label_from_tagger(label_file)
+                    if label is not None:
+                        ingest_screenshot_tags(
+                            label, screenshot_uuid, tagger=tagger)
+                        tag_ctr += 1
+            ctr += 1
+    return ctr, tag_ctr
+
+
+def export_to_filesystem(dest='/out_dataset'):
+    game_names = get_game_names()
+    print(f'exporting data for games: {game_names}')
+    total_exported = {}
+    for game in game_names:
+        screenshot_ctr = 0
+
+        game_path = os.path.join(dest, game['game'])
+        os.makedirs(os.path.join(game_path, 'screenshots'), exist_ok=True)
+        os.makedirs(os.path.join(game_path, 'tiles'), exist_ok=True)
+        os.makedirs(os.path.join(game_path, 'sprites'), exist_ok=True)
+
+        print(f'Made Directories for game: {game}, {game_path}')
+        screenshots = get_screenshots_by_game(game['game'])
+        print(f'Exporting {len(screenshots)} screenshots for {game}')
+        for screenshot in screenshots:
+            image_id = screenshot['image_id']
+            image_folder = os.path.join(
+                game_path, 'screenshots', str(image_id))
+            os.makedirs(image_folder, exist_ok=True)
+
+            image_file = os.path.join(image_folder, f'{image_id}.png')
+            orig_cv, encoded_img = P.from_data_to_cv(screenshot['data'])
+            print(
+                f'saving file: {image_file}  -- {orig_cv.shape} {type(orig_cv)}')
+            cv2.imwrite(image_file, orig_cv)
+            save_labels(image_id, image_folder)
+            meta = {'y_offset': screenshot['y_offset'],
+                    'x_offset': screenshot['x_offset']}
+            with open(os.path.join(
+                    image_folder, f'{str(image_id)}.json'), 'w') as file:
+                json.dump(meta, file)
+
+        tiles = get_tiles_by_game(game['game'])
+        print(f'Exporting {len(tiles)} screenshots for {game}')
+        tiles_folder = os.path.join(game_path, 'tiles')
+        os.makedirs(tiles_folder, exist_ok=True)
+        to_csv = []
+        for tile in tiles:
+            tile_id = tile['tile_id']
+
+            tile_file = os.path.join(tiles_folder, f'{tile_id}.png')
+            orig_cv, encoded_img = P.from_data_to_cv(tile['data'])
+            print(
+                f'saving file: {tile_file}  -- {orig_cv.shape} {type(orig_cv)}')
+            cv2.imwrite(tile_file, orig_cv)
+
+            tile_tag_entries = get_tile_affordances(tile_id)
+
+            for db_entry in tile_tag_entries:
+                db_entry['file_name'] = db_entry.pop('tile_id')
+                to_csv.append(db_entry)
+        with open(os.path.join(tiles_folder, 'tile_affordances.csv'), mode='w') as csv_file:
+            fieldnames = ['file_name', "solid", "movable", "destroyable",
+                          "dangerous", "gettable", "portal", "usable", "changeable", "ui", "tagger_id"]
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in to_csv:
+                writer.writerow(row)
+    return 1
+
+
+def save_labels(image_uuid, image_folder):
+    # label_file = os.path.join(image_folder, 'label', f'{image_uuid}.npy')
+    db_entries = get_screenshot_affordances(image_uuid)
+    row_ctr = 0
+    if len(db_entries) % 9 != 0:
+        print('NOT MOD 9 TAG ENTRIES FOR IMAGE: {}'.format(image_uuid))
+    print('NUM ROWS OF AFFORDANCES {} FOR IMAGE {}'.format(
+        len(db_entries), image_uuid))
+    while row_ctr < len(db_entries):
+        label_to_convert = []
+        tagger_id = db_entries[row_ctr]['tagger_id']
+        for affordance in range(9):
+            db_entry = db_entries[row_ctr]
+            if db_entry['affordance'] != affordance:
+                print('AFFORDANCES IN WRONG ORDER')
+            tag_cv, encoded = P.from_data_to_cv(db_entry['tags'])
+            label_to_convert.append(tag_cv)
+            row_ctr += 1
+        stacked_array = P.images_to_numpy(label_to_convert)
+        pth = os.path.join(image_folder, f'{tagger_id}.npy')
+        print(f'NUMPY SAVE: saving file: {pth}')
+        np.save(os.path.join(image_folder, f'{tagger_id}.npy'), stacked_array)
+
+
+def ingest_screenshot_tags(stacked_array, image_id, tagger='ingested'):
+    channels_dict = P.numpy_to_images(stacked_array)
+    print('INGESTING SCREENSHOT: {}'.format(image_id))
+    for i, affordance in enumerate(P.AFFORDANCES):
+        encoded_channel = channels_dict[affordance]
+        channel_data = encoded_channel.tobytes()
+        insert_screenshot_tag(image_id, i, tagger, channel_data)
+    pass
 
 
 # def ingest_tiles_from_pickle(game, dir):
@@ -174,12 +306,15 @@ def ingest_tile_files(tile_files, game, dir):
             # tile_id = result['tile_id']
 
             # TODO TILE AFFORDANCES
-            # csv_file = os.path.join(dir, game, 'tile_affordances.csv')
-            # tile_affords = affords_from_csv_file(csv_file, tile_uuid)
-            # if tile_affords is not None:
-            #     print('TILE HAD AFFORDS')
-            #     # ingest_tile_tags(tile_affords, tile_id)
-            #     tag_ctr += 1
+            csv_file = os.path.join(dir, game, 'tiles', 'tile_affordances.csv')
+            tile_entry = affords_from_csv_file(csv_file, tile_uuid)
+            if tile_entry is not None:
+                print('TILE HAD AFFORDS')
+                insert_tile_tag(
+                    tile_uuid, tile_entry['tagger_id'], int(
+                        tile_entry['solid']),
+                    int(tile_entry['movable']), int(tile_entry['destroyable']), int(tile_entry['dangerous']), int(tile_entry['gettable']), int(tile_entry['portal']), int(tile_entry['usable']), int(tile_entry['changeable']), int(tile_entry['ui']))
+                tag_ctr += 1
             ctr += 1
     return ctr
 
@@ -459,7 +594,7 @@ def check_if_already_tagged(image_id, tagger_id):
 def get_screenshot_affordances(id):
     cmd = text(
         """SELECT image_id, affordance, tags, tagger_id FROM screenshot_tags
-        WHERE image_id = :id;
+        WHERE image_id = :id ORDER BY tagger_id, affordance;
         """
     )
     cmd = cmd.bindparams(
@@ -478,6 +613,21 @@ def get_screenshot_affordances(id):
     return output
 
 
+def get_game_names():
+    cmd = text(
+        """SELECT DISTINCT game FROM screenshots;
+        """
+    )
+
+    res = get_connection().execute(cmd)
+    output = []
+    for row in res:
+        output.append({
+            'game': row['game'],
+        })
+    return output
+
+
 def get_tile_affordances(tile_id):
     cmd = text(
         """SELECT * FROM tile_tags
@@ -488,20 +638,46 @@ def get_tile_affordances(tile_id):
         bindparam('id', value=tile_id, type_=Integer),
     )
     res = get_connection().execute(cmd)
-
+    output = []
     for row in res:
-        output = {
+        output.append({
             'tile_id': row['tile_id'],
-            'solid': row['solid'],
-            "movable": row['movable'],
-            "destroyable": row['destroyable'],
-            "dangerous": row['dangerous'],
-            "gettable": row['gettable'],
-            "portal": row['portal'],
-            "usable": row['usable'],
-            "changeable": row['changeable'],
-            "ui": row['ui']
-        }
+            'tagger_id': row['tagger_id'],
+            'solid': int(row['solid']),
+            "movable": int(row['movable']),
+            "destroyable": int(row['destroyable']),
+            "dangerous": int(row['dangerous']),
+            "gettable": int(row['gettable']),
+            "portal": int(row['portal']),
+            "usable": int(row['usable']),
+            "changeable": int(row['changeable']),
+            "ui": int(row['ui'])
+        })
+    return output
+
+
+def get_screenshots_by_game(game):
+    cmd = text(
+        """SELECT * FROM screenshots
+        WHERE game = :g;
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('g', value=game, type_=String),
+    )
+    res = get_connection().execute(cmd)
+
+    output = []
+    for row in res:
+        output.append({
+            'image_id': row['image_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'y_offset': row['y_offset'],
+            'x_offset': row['x_offset'],
+            'data': row['data'],
+        })
     return output
 
 
