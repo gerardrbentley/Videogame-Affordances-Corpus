@@ -39,7 +39,9 @@ To initialize the database and ingest all screenshots and tiles from the directo
 sudo docker-compose up
 ```
 
-If any unexpected behaviours occur, you can use the following to clean up the containers and persistent database volume
+The server should now be running at 0.0.0.0:5000/ (With docker set up on mac you may need to replace 0.0.0.0 with the result of `docker-machine ip`. With docker on linux it should work with 0.0.0.0 or your computer's public IP (search 'what's my ip' or find in settings)
+
+If any unexpected behaviours occur (especially specifically related to postgres), you can use the following to clean up the containers and persistent database volume
 ```
 sudo docker-compose down --remove-orphans --volumes
 ```
