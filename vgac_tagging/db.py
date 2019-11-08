@@ -392,6 +392,8 @@ def insert_screenshot_tag(image_id, affordance, tagger, data):
     cmd = text(
         """INSERT INTO screenshot_tags(image_id, affordance, tagger_id, created_on, tags)
         VALUES(:u, :a, :t, :dt, :d)
+        ON CONFLICT ON CONSTRAINT screenshot_tags_pkey
+        DO UPDATE SET tags = :d
         """
     )
     cmd = cmd.bindparams(
@@ -432,6 +434,8 @@ def insert_tile_tag(tile_id, tagger, solid, movable, destroyable, dangerous, get
     cmd = text(
         """INSERT INTO tile_tags(tile_id, created_on, tagger_id, solid, movable, destroyable, dangerous, gettable, portal, usable, changeable, ui)
         VALUES(:ti, :dt, :ta, :s, :m, :de, :da, :g, :p, :us, :c, :ui)
+        ON CONFLICT ON CONSTRAINT tile_tags_pkey
+        DO UPDATE SET solid = :s, movable = :m, destroyable = :de, dangerous = :da, gettable = :g, portal = :p, usable = :us, changeable = :c, ui = :ui
         """
     )
     cmd = cmd.bindparams(

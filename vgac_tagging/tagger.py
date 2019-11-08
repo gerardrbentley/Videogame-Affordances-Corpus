@@ -64,7 +64,9 @@ def encode_tile_from_dict(entry):
 
 @bp.route("/")
 def tag_image():
-    return render_template('base.html')
+    tagger_id = request.args.get(
+        'tagger-id', default='default-tagger', type=str)
+    return render_template('base.html', tagger_id=tagger_id)
 
 
 @bp.route("/devjs")
@@ -91,9 +93,10 @@ def test_json():
 @bp.route("/get_image")
 def get_image_to_tag():
     """Return random image, list of unique tiles and locations"""
-
-    #TODO: get tagger_id from cookie or POST
-    tagger_id = 'developer'
+    tagger_id = request.args.get(
+        'tagger-id', default='default-tagger', type=str)
+    if tagger_id == 'default-tagger':
+        logger.debug("NO TAGGER ID IN GET IMAGE")
 
     logger.debug('Fetching image for tagger: {}'.format(tagger_id))
 
@@ -130,6 +133,8 @@ def get_image_to_tag():
         'image': image_string,
         'image_id': image_id,
         'tiles': tiles_to_tag,
+        'y_offset': y_offset,
+        'x_offset': x_offset
     }
     logger.debug('base route ok')
     return jsonify({'output': output})
@@ -184,7 +189,7 @@ def save_affordances():
     data = request.get_json(force=True)
     tagger = data['tagger_id']
     image_id = data['image_id']
-    logger.debug("RECEIVED POST")
+    logger.debug(f'RECEIVED TAGS FROM: {tagger} FOR IMAGE: {image_id}')
     # logger.debug(f'{data}')
     tiles = data['tiles']
     insert_count = 0
@@ -235,7 +240,7 @@ def homepage():
     tagger_id = 'test_tagger'
     # image_data = db.get_untagged_screenshot(tagger_id)
     image_data = db.get_screenshot_by_id(
-        'c7fb2184-c342-4a1a-be59-e7c88f9ea15d')
+        '670fecdf-02c2-47ad-becd-20b6ddac5fc0')
     image_id = image_data['image_id']
 
     game = image_data['game']

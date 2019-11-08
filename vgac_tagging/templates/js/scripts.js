@@ -1053,13 +1053,15 @@ window.addEventListener('load', function()
 
 function fetch_data(){
   console.log(mydata)
-  $.get("/get_image", function(json)
+  tagger_id = document.getElementById("tagger_id").getAttribute('tagger')
+  temp_url = "/get_image?tagger-id=" + tagger_id
+  $.get(temp_url, function(json)
   {
       mydata = json;
       console.log(mydata); // this will show the info it in firebug console
       output = //get tagger id from somewhere later (?)
       {
-          "tagger_id":"TestTagger",
+          "tagger_id":tagger_id,
           "image_id":mydata['output']['image_id']
       };
 
@@ -1114,6 +1116,11 @@ function update_images(){
     var tile_tmp = document.getElementById('tile');
     tile_tmp.src = mydata['output']['tiles']['tile_0']['tile_data'];
 
+
+    grid_movex = mydata['output']['x_offset']
+    grid_movey = mydata['output']['y_offset']
+    console.log(grid_movex)
+    console.log(grid_movey)
     drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
     check_grid_on = 1;
     grid_checked = 1;
