@@ -459,103 +459,102 @@ b_grid.onclick = function()
 {
     if(!check_grid_on)
     {
-        // for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-        // {
-        //     drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
-        // }
-        drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
+        for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+        {
+            drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
+        }
         check_grid_on = 1;
     }
 };
 
-// var b_grid_save = document.getElementById("b_grid_save");
-// b_grid_save.style.backgroundColor = "darkgreen";
-// b_grid_save.style.fontSize = "x-large";
-// b_grid_save.style.fontVariant = "small-caps";
-// b_grid_save.onclick = function()
-// {
-//     grid_checked = 1;
-// };
+var b_grid_save = document.getElementById("b_grid_save");
+b_grid_save.style.backgroundColor = "darkgreen";
+b_grid_save.style.fontSize = "x-large";
+b_grid_save.style.fontVariant = "small-caps";
+b_grid_save.onclick = function()
+{
+    grid_checked = 1;
+};
 
-// var b_grid_reset = document.getElementById("b_grid_reset");
-// b_grid_reset.style.backgroundColor = "darkred";
-// b_grid_reset.style.fontSize = "x-large";
-// b_grid_reset.style.fontVariant = "small-caps";
-// b_grid_reset.onclick = function()
-// {
-//     check_grid_on = 0;
-//     grid_movex = 0;
-//     grid_movey = 0;
-//     for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-//     {
-//         //erase(canvas_list[canvas_id]);
-//         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-//     }
-// };
-//
-// var b_grid_up = document.getElementById("b_grid_up");
-// b_grid_up.style.backgroundColor = 'rgb(100, 100, 100)';
-// b_grid_up.style.fontSize = "x-large";
-// b_grid_up.style.fontVariant = "small-caps";
-// b_grid_up.onclick = function()
-// {
-//     grid_movey--;
-//     for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-//     {
-//         erase(canvas_list[canvas_id]);
-//         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-//         drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
-//     }
-//
-// };
-//
-// var b_grid_down = document.getElementById("b_grid_down");
-// b_grid_down.style.backgroundColor = "gray";
-// b_grid_down.style.fontSize = "x-large";
-// b_grid_down.style.fontVariant = "small-caps";
-// b_grid_down.onclick = function()
-// {
-//     grid_movey++;
-//     for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-//     {
-//         erase(canvas_list[canvas_id]);
-//         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-//         drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
-//     }
-//
-// };
-//
-// var b_grid_left = document.getElementById("b_grid_left");
-// b_grid_left.style.backgroundColor = "gray";
-// b_grid_left.style.fontSize = "x-large";
-// b_grid_left.style.fontVariant = "small-caps";
-// b_grid_left.onclick = function()
-// {
-//     grid_movex--;
-//     for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-//     {
-//         erase(canvas_list[canvas_id]);
-//         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-//         drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
-//     }
-//
-// };
-//
-// var b_grid_right = document.getElementById("b_grid_right");
-// b_grid_right.style.backgroundColor = "gray";
-// b_grid_right.style.fontSize = "x-large";
-// b_grid_right.style.fontVariant = "small-caps";
-// b_grid_right.onclick = function()
-// {
-//     grid_movex++;
-//     for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-//     {
-//         erase(canvas_list[canvas_id]);
-//         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-//         drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
-//     }
-//
-// };
+var b_grid_reset = document.getElementById("b_grid_reset");
+b_grid_reset.style.backgroundColor = "darkred";
+b_grid_reset.style.fontSize = "x-large";
+b_grid_reset.style.fontVariant = "small-caps";
+b_grid_reset.onclick = function()
+{
+    check_grid_on = 0;
+    grid_movex = 0;
+    grid_movey = 0;
+    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+    {
+        //erase(canvas_list[canvas_id]);
+        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+    }
+};
+
+var b_grid_up = document.getElementById("b_grid_up");
+b_grid_up.style.backgroundColor = 'rgb(100, 100, 100)';
+b_grid_up.style.fontSize = "x-large";
+b_grid_up.style.fontVariant = "small-caps";
+b_grid_up.onclick = function()
+{
+    grid_movey--;
+    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+    {
+        erase(canvas_list[canvas_id]);
+        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+    }
+
+};
+
+var b_grid_down = document.getElementById("b_grid_down");
+b_grid_down.style.backgroundColor = "gray";
+b_grid_down.style.fontSize = "x-large";
+b_grid_down.style.fontVariant = "small-caps";
+b_grid_down.onclick = function()
+{
+    grid_movey++;
+    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+    {
+        erase(canvas_list[canvas_id]);
+        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+    }
+
+};
+
+var b_grid_left = document.getElementById("b_grid_left");
+b_grid_left.style.backgroundColor = "gray";
+b_grid_left.style.fontSize = "x-large";
+b_grid_left.style.fontVariant = "small-caps";
+b_grid_left.onclick = function()
+{
+    grid_movex--;
+    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+    {
+        erase(canvas_list[canvas_id]);
+        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+    }
+
+};
+
+var b_grid_right = document.getElementById("b_grid_right");
+b_grid_right.style.backgroundColor = "gray";
+b_grid_right.style.fontSize = "x-large";
+b_grid_right.style.fontVariant = "small-caps";
+b_grid_right.onclick = function()
+{
+    grid_movex++;
+    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+    {
+        erase(canvas_list[canvas_id]);
+        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+    }
+
+};
 
 
 function myFunction()
@@ -714,13 +713,6 @@ function draw(x, y, z)
         ctx.lineWidth = 3;
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.fillRect (x, y, GRID_SIZE, GRID_SIZE);
-
-        if (z == canvas_draw)
-        {
-            ctx.strokeStyle = 'rgb(255,0,  255)';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, GRID_SIZE, GRID_SIZE)
-        }
     }
     else
     {
@@ -856,7 +848,7 @@ var drawGrid = function(canvas, w, h, step, grid_color)
     }
     // set the color of the line
     ctx.strokeStyle = grid_color;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.5;
     ctx.globalCompositeOperation='destination-out';
     ctx.globalCompositeOperation='source-over';
     // the stroke will actually paint the current path
@@ -1113,11 +1105,6 @@ function update_images(){
     scrn_img.src = mydata['output']['image'];
     var tile_tmp = document.getElementById('tile');
     tile_tmp.src = mydata['output']['tiles']['tile_0']['tile_data'];
-
-    drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
-    check_grid_on = 1;
-    grid_checked = 1;
-
     var poses = mydata['output']['tiles']['tile_' + num]['locations'];
     for(i = 0; i < Object.keys(poses).length; i++)
     {
@@ -1182,7 +1169,7 @@ function send_output_to_server(){
         break;
     }
 }*/
-var CHECK_GRID = 0;
+var check_grid = 1;
 document.onkeydown = function(event)
 {
     var pos_x = 0;
@@ -1197,7 +1184,7 @@ document.onkeydown = function(event)
             if(grid_checked)
             {
                 erase(canvas_draw);
-                if(CHECK_GRID)
+                if(check_grid)
                 {
                     for(var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
                     {
@@ -1216,14 +1203,13 @@ document.onkeydown = function(event)
 
                 tile.src = tiles['tile_' + num]['tile_data'];
                 poses = mydata['output']['tiles']['tile_' + num]['locations'];
-                drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
+
                 for(i = 0; i < Object.keys(poses).length; i++)
                 {
                     pos_x = poses['location_' + i]['x'];
                     pos_y = poses['location_' + i]['y'];
                     draw(pos_x, pos_y, canvas_draw);
                 }
-
                 //checkboxes_____________________________________________________
                 checkQ.checked = false;
                 checkW.checked = false;

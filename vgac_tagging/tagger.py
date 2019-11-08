@@ -113,7 +113,7 @@ def get_image_to_tag():
     logger.debug('Image stringified')
 
     # known_game_tiles = db.get_tiles_by_game(game)
-    # logger.debug('Known tiles loaded')
+    logger.debug(f'Getting unique tiles at yxoffset: {y_offset},{x_offset}')
 
     unique_tiles = P.find_unique_tiles(
         (orig_cv), game, y_offset, x_offset)
@@ -140,7 +140,8 @@ def get_tile_ids(unique_tiles, game):
 
     tiles_to_tag = {}
     logger.debug('LEN KNOWN TILES: {}'.format(len(known_game_tiles)))
-
+    hit_ctr = 0
+    miss_ctr = 0
     for idx, screenshot_tile in enumerate(unique_tiles):
         to_compare = screenshot_tile['tile_data']
         is_in_db = False
@@ -149,6 +150,7 @@ def get_tile_ids(unique_tiles, game):
             err = P.mse(to_compare, (cv_img))
             if err < 0.001:
                 is_in_db = True
+                hit_ctr += 1
                 # logger.debug("MATCHED {}".format(tile_info['tile_id']))
                 # logger.debug("NUM LOCS {}".format(
                 #     len(screenshot_tile['locations'])))
@@ -160,6 +162,7 @@ def get_tile_ids(unique_tiles, game):
                 break
         if not is_in_db:
             logger.debug("TILE NOT MATCHED IN DB")
+            miss_ctr += 1
             tiles_to_tag['tile_{}'.format(idx)] = {
                 'tile_id': -1,
                 'tile_data': b64_string(P.from_cv_to_bytes(to_compare)),
@@ -171,6 +174,7 @@ def get_tile_ids(unique_tiles, game):
         #     height, width, channels = screenshot_tile['tile_data'].shape
         #     tile_data = P.from_cv_to_bytes(screenshot_tile['tile_data'])
         #     db.insert_tile(game, width, height, tile_data)
+    logger.debug(f'db tile hits: {hit_ctr}, misses: {miss_ctr}')
     return tiles_to_tag
 
 

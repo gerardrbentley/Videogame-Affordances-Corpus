@@ -152,7 +152,7 @@ def parse_args():
                         help='path to tiles folder')
     parser.add_argument('--game', type=str, default='sm3',
                         help='game name')
-    parser.add_argument('--games-dir', type=str, default='../temp_games')
+    parser.add_argument('--games-dir', type=str, default='../games')
     parser.add_argument('--grid-size', type=int,
                         default=8, help='grid square size')
     parser.add_argument('--k', type=int,

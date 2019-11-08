@@ -96,7 +96,7 @@ def detect_sprites(image, args):
 
 
 @dask.delayed
-def get_unique_tiles(image, offset_y=0, offset_x=0, grid_size=16, ignore=[]):
+def get_unique_tiles(image, offset_y=0, offset_x=0, grid_size=8, ignore=[], full_image=False):
     """
     Parameters
     ----------
@@ -121,6 +121,12 @@ def get_unique_tiles(image, offset_y=0, offset_x=0, grid_size=16, ignore=[]):
     ymax = h-grid_size + offset_y
     rows = (h-grid_size)//grid_size
 
+    if full_image:
+        xmax = w
+        cols = w//grid_size
+        ymax = h
+        rows = h//grid_size
+
     cropped_img = image[offset_y:ymax, offset_x:xmax]
 
     unique_tiles = []
@@ -135,10 +141,10 @@ def get_unique_tiles(image, offset_y=0, offset_x=0, grid_size=16, ignore=[]):
             top = y1 - offset_y
             bot = y2 - offset_y
 
-            leftcol = left // args.grid_size
-            rightcol = right // args.grid_size
-            toprow = top // args.grid_size
-            botrow = bot // args.grid_size
+            leftcol = left // grid_size
+            rightcol = right // grid_size
+            toprow = top // grid_size
+            botrow = bot // grid_size
 
             if args.verbose:
                 print(f'\t\t+ {leftcol}, {rightcol}, {toprow}, {botrow}')
@@ -193,13 +199,18 @@ def unique_tiles_all_offsets(args):
     if orig_image.shape[2] == 4:
         orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGRA2BGR)
     # orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
-
-    if args.ui_position == 'top':
-        orig_image = orig_image[args.ui_height:, :, :]
-    else:
-        h = orig_image.shape[0]
-        orig_image = orig_image[:h-args.ui_height, :, :]
-
+    h, w, *_ = orig_image.shape
+    orig_image = orig_image[args.crop_t: h
+                            - args.crop_b, args.crop_l: w - args.crop_r, :]
+    # if args.ui_position == 'top':
+    #     orig_image = orig_image[args.ui_height+8:h-8, 8:w-8, :]
+    # else:
+    #     h = orig_image.shape[0]
+    #     orig_image = orig_image[8:h-args.ui_height-8, 8:w-8, :]
+    new_h, new_w, *_ = orig_image.shape
+    if args.verbose:
+        print(f'h: {h}, w: {w}')
+        print(f'cropped new_h: {new_h}, new_w: {new_w}')
     # Yolo detect sprites bounding boxes
     if args is not None:
         sprited_image, sprite_locs = detect_sprites(
@@ -209,12 +220,15 @@ def unique_tiles_all_offsets(args):
     # print(type(image))
     potential_offsets = [(y, x) for x in range(0, args.grid_size)
                          for y in range(0, args.grid_size)]
-    if args.only_zero_zero:
-        potential_offsets = [(0, 0)]
+
     out = []
-    for (y, x) in potential_offsets:
-        out.append(get_unique_tiles(np.copy(orig_image),
-                                    y, x, grid_size=args.grid_size, ignore=sprite_locs))
+    if args.only_zero_zero:
+        out.append(get_unique_tiles(np.copy(orig_image), 0, 0,
+                                    grid_size=args.grid_size, ignore=sprite_locs, full_image=True))
+    else:
+        for (y, x) in potential_offsets:
+            out.append(get_unique_tiles(np.copy(orig_image),
+                                        y, x, grid_size=args.grid_size, ignore=sprite_locs))
 
     # dask.visualize(out, filename='offsets.svg')
     res = dask.compute(out)
@@ -250,21 +264,30 @@ def parse_args():
     parser.add_argument('--file', type=str, default='./0.png')
     parser.add_argument('--visualize', action='store_true')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--no-save', action='store_true')
     parser.add_argument('--only-zero-zero', action='store_true')
-    parser.add_argument('--game', type=str, default='sm3')
+    parser.add_argument('--game', type=str, default='loz')
     parser.add_argument('--dest', type=str, default='output')
     parser.add_argument('--k', type=int,
                         default=5, help='num tile sets to select')
     parser.add_argument('--grid-size', type=int,
                         default=8, help='grid square size')
+    parser.add_argument('--crop-l', type=int,
+                        default=0, help='ignore this range')
+    parser.add_argument('--crop-r', type=int,
+                        default=0, help='ignore this range')
+    parser.add_argument('--crop-t', type=int,
+                        default=0, help='ignore this range')
+    parser.add_argument('--crop-b', type=int,
+                        default=0, help='ignore this range')
     parser.add_argument('--ui-height', type=int,
                         default=0, help='ignore this range')
     parser.add_argument('--ui-position', type=str,
                         default='bot', help='ui top or bot')
     parser.add_argument("--model_def", type=str,
                         default="yolo/config/yolov3-vg.cfg", help="path to model definition file")
-    parser.add_argument("--weights_path", type=str,
-                        default="yolo/checkpoints/yolov3_custom_ckpt_18.pth", help="path to weights file")
+    parser.add_argument("--checkpoint", type=str,
+                        default="yolo/checkpoints/loz_ckpt_10.pth", help="path to weights file")
     parser.add_argument("--class_path", type=str,
                         default="yolo/data/custom/classes.names", help="path to class label file")
     parser.add_argument("--conf_thres", type=float,
@@ -291,14 +314,16 @@ if __name__ == '__main__':
 
     # Set up model
     model = Darknet(args.model_def, img_size=416).to(device)
-    model.load_state_dict(torch.load(args.weights_path))
+    model.load_state_dict(torch.load(args.checkpoint))
     model.eval()  # Set in evaluation mode
     args.yolo_model = model
     args.classes = load_classes(args.class_path)
 
     #Gen unique tile sets at all offsets
     tile_sets = unique_tiles_all_offsets(args)
-
+    if args.no_save:
+        print('not saving')
+        exit()
     #Prune best k sets
     if args.only_zero_zero:
         res = k_best_sets(tile_sets, 1)

@@ -112,6 +112,7 @@ def images_to_numpy(affordance_images):
 
 def mse(a, b):
     if a.shape != b.shape:
+        print('WRONG SHAPE')
         return 1
     diffs = np.square(np.subtract(a, b))
     total_diff = np.sum(diffs)
@@ -163,7 +164,7 @@ Returns list of dictionaries opencv tiles with corresponding list of locations i
 def find_unique_tiles(image, game, y_offset, x_offset):
     print('Finding unique tiles in img')
     settings = DEFAULTS[game]
-    grid_size = settings['grid_size']
+    grid_size = 8
     ui_position = settings['ui_position']
     ui_height = settings['ui_height']
     height, width, channels = image.shape
@@ -207,6 +208,7 @@ def find_unique_tiles(image, game, y_offset, x_offset):
 
     print('VISITED {} tiles, sum of unique({}) + skip({}) = {}'.format(
         len(visited_locations), len(img_tiles), skip_ctr, (len(img_tiles)+skip_ctr)))
+    print(img_tiles[0]['tile_data'].shape)
     return img_tiles
 
 #
