@@ -102,24 +102,23 @@ def get_image_to_tag():
 
     image_data = db.get_untagged_screenshot(tagger_id)
     image_id = image_data['image_id']
-
     game = image_data['game']
+    data = image_data['data']
+
+    meta = {i:d[i] for i in image_data if i != 'data' and i != 'game' and i != 'image_id'}
     y_offset = image_data['y_offset']
     x_offset = image_data['x_offset']
-    # width = image_data['width']
-    # height = image_data['height']
-    data = image_data['data']
     logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))
+    logger.debug(f'image meta info: {meta}')
 
     orig_cv, encoded_img = P.from_data_to_cv(data)
     image_string = b64_string(encoded_img)
     logger.debug('Image stringified')
 
     # known_game_tiles = db.get_tiles_by_game(game)
-    logger.debug(f'Getting unique tiles at yxoffset: {y_offset},{x_offset}')
 
-    unique_tiles = P.find_unique_tiles(
-        (orig_cv), game, y_offset, x_offset)
+    unique_tiles = P.unique_tiles_using_meta(
+        (orig_cv), **meta)
 
     tiles_to_tag = get_tile_ids(unique_tiles, game)
     # map_dict(encode_tile_from_dict, tiles_to_tag)

@@ -77,6 +77,37 @@ def offsets_from_json(screenshots_dir, file_uuid):
             return (data['y_offset'], data['x_offset'])
     return (0, 0)
 
+def metadata_from_json(screenshots_dir, file_uuid):
+    pth = os.path.join(screenshots_dir, file_uuid, f'{file_uuid}.json')
+    if os.path.isfile(pth):
+        with open(pth, mode='r') as metadata_file:
+            data = json.load(metadata_file)
+            output = {
+                'crop_l': data['crop_l'],
+                'crop_r': data['crop_r'],
+                'crop_b': data['crop_b'],
+                'crop_t': data['crop_t'],
+                'ui_x': data['ui_x'],
+                'ui_y': data['ui_y'],
+                'ui_width': data['ui_width'],
+                'ui_height': data['ui_height'],
+                'y_offset': data['y_offset'],
+                'x_offset': data['x_offset']
+            }
+            return output
+    return {
+                'crop_l': 0,
+                'crop_r': 0,
+                'crop_b': 0,
+                'crop_t': 0,
+                'ui_x': 0,
+                'ui_y': 0,
+                'ui_width': 0,
+                'ui_height': 0,
+                'y_offset': 0,
+                'x_offset': 0
+            }
+
 
 def ingest_filesystem_data(dir=os.path.join('/games')):
     total_ingested = {}
@@ -144,31 +175,31 @@ def ingest_screenshots(game, screenshots_dir):
         if is_in:
             print(f'SKIPPED INGESTING IMAGE: {screenshot_uuid}')
         else:
-            y_offset, x_offset = offsets_from_json(
+            metadata = metadata_from_json(
                 screenshots_dir, screenshot_uuid)
             print('offsets got for image num: {}, y:{}, x:{}'.format(
-                screenshot_uuid, y_offset, x_offset))
+                screenshot_uuid, metadata['y_offset'], metadata['x_offset']))
 
             cv_image, encoded_png = P.load_image(screenshot_file)
             h, w, *_ = cv_image.shape
             data = encoded_png.tobytes()
 
             result = insert_screenshot(
-                screenshot_uuid, game, int(w), int(h), y_offset, x_offset, data)
+                screenshot_uuid, game, int(w), int(h), data, **metadata)
 
-            #TODO: Load known labels from numpy
-            label_files = glob.glob(os.path.join(
-                screenshots_dir, screenshot_uuid, "*.npy"))
-            if len(label_files) > 0:
-                for label_file in label_files:
-                    tagger_npy = os.path.split(label_file)[1]
-                    tagger = os.path.splitext(tagger_npy)[0]
-                    label = P.load_label_from_tagger(label_file)
-                    if label is not None:
-                        ingest_screenshot_tags(
-                            label, screenshot_uuid, tagger=tagger)
-                        tag_ctr += 1
-            ctr += 1
+        #TODO: Load known labels from numpy
+        label_files = glob.glob(os.path.join(
+            screenshots_dir, screenshot_uuid, "*.npy"))
+        if len(label_files) > 0:
+            for label_file in label_files:
+                tagger_npy = os.path.split(label_file)[1]
+                tagger = os.path.splitext(tagger_npy)[0]
+                label = P.load_label_from_tagger(label_file)
+                if label is not None:
+                    ingest_screenshot_tags(
+                        label, screenshot_uuid, tagger=tagger)
+                    tag_ctr += 1
+        ctr += 1
     return ctr, tag_ctr
 
 
@@ -361,11 +392,10 @@ def ingest_tile_files(tile_files, game, dir):
 #     pass
 #
 
-
-def insert_screenshot(image_uuid, game, width, height, y_offset, x_offset, image):
+def insert_screenshot(image_uuid, game, width, height, image, y_offset=0, x_offset=0, crop_l=0, crop_r=0, crop_t=0, crop_b=0, ui_x=0, ui_y=0, ui_height=0, ui_width=0):
     cmd = text(
-        """INSERT INTO screenshots(image_id, game, width, height, y_offset, x_offset, created_on, data)
-        VALUES(:u, :g, :w, :h, :y, :x, :dt, :i)
+        """INSERT INTO screenshots(image_id, game, width, height, y_offset, x_offset, created_on, data, crop_l, crop_r, crop_t, crop_b, ui_x, ui_y, ui_height, ui_width)
+        VALUES(:u, :g, :w, :h, :y, :x, :dt, :i, :crop_l, :crop_r, :crop_t, :crop_b, :ui_x, :ui_y, :ui_height, :ui_width)
         RETURNING image_id
         """
     )
@@ -377,7 +407,15 @@ def insert_screenshot(image_uuid, game, width, height, y_offset, x_offset, image
         bindparam('y', value=y_offset, type_=Integer),
         bindparam('x', value=x_offset, type_=Integer),
         bindparam('dt', value=curr_timestamp(), type_=DateTime),
-        bindparam('i', value=image, type_=LargeBinary)
+        bindparam('i', value=image, type_=LargeBinary),
+        bindparam('crop_l', value=crop_l, type_=Integer),
+        bindparam('crop_r', value=crop_r, type_=Integer),
+        bindparam('crop_t', value=crop_t, type_=Integer),
+        bindparam('crop_b', value=crop_b, type_=Integer),
+        bindparam('ui_x', value=ui_x, type_=Integer),
+        bindparam('ui_y', value=ui_y, type_=Integer),
+        bindparam('ui_height', value=ui_height, type_=Integer),
+        bindparam('ui_width', value=ui_width, type_=Integer),
     )
     res = get_connection().execute(cmd)
 
@@ -501,6 +539,25 @@ def insert_sprite_tag(sprite_id, tagger, solid, movable, destroyable, dangerous,
     )
     get_connection().execute(cmd)
 
+def screenshot_dictify(row):
+    output = {
+            'image_id': row['image_id'],
+            'game': row['game'],
+            'width': row['width'],
+            'height': row['height'],
+            'y_offset': row['y_offset'],
+            'x_offset': row['x_offset'],
+            'data': row['data'],
+            'crop_l': row['crop_l'],
+            'crop_r': row['crop_r'],
+            'crop_b': row['crop_b'],
+            'crop_t': row['crop_t'],
+            'ui_x': row['ui_x'],
+            'ui_y': row['ui_y'],
+            'ui_width': row['ui_width'],
+            'ui_height': row['ui_height'],
+        }
+    return output
 
 def get_random_screenshot():
     cmd = text(
@@ -513,15 +570,7 @@ def get_random_screenshot():
     res = get_connection().execute(cmd)
 
     for row in res:
-        output = {
-            'image_id': row['image_id'],
-            'game': row['game'],
-            'width': row['width'],
-            'height': row['height'],
-            'y_offset': row['y_offset'],
-            'x_offset': row['x_offset'],
-            'data': row['data'],
-        }
+        output = screenshot_dictify(row)
     return output
 
 
@@ -543,15 +592,7 @@ def get_untagged_screenshot(tagger_id='default'):
     res = get_connection().execute(cmd)
 
     for row in res:
-        output = {
-            'image_id': row['image_id'],
-            'game': row['game'],
-            'width': row['width'],
-            'height': row['height'],
-            'y_offset': row['y_offset'],
-            'x_offset': row['x_offset'],
-            'data': row['data'],
-        }
+        output = screenshot_dictify(row)
     return output
 
 
@@ -567,15 +608,7 @@ def get_screenshot_by_id(id):
     res = get_connection().execute(cmd)
 
     for row in res:
-        output = {
-            'image_id': row['image_id'],
-            'game': row['game'],
-            'width': row['width'],
-            'height': row['height'],
-            'y_offset': row['y_offset'],
-            'x_offset': row['x_offset'],
-            'data': row['data'],
-        }
+        output = screenshot_dictify(row)
     return output
 
 
@@ -673,15 +706,7 @@ def get_screenshots_by_game(game):
 
     output = []
     for row in res:
-        output.append({
-            'image_id': row['image_id'],
-            'game': row['game'],
-            'width': row['width'],
-            'height': row['height'],
-            'y_offset': row['y_offset'],
-            'x_offset': row['x_offset'],
-            'data': row['data'],
-        })
+        output.append(screenshot_dictify(row))
     return output
 
 
@@ -766,6 +791,14 @@ def init_db():
         height integer,
         y_offset integer,
         x_offset integer,
+        crop_l integer,
+        crop_r integer,
+        crop_b integer,
+        crop_t integer,
+        ui_x integer,
+        ui_y integer,
+        ui_width integer,
+        ui_height integer,
         created_on TIMESTAMP NOT NULL,
         data bytea
         )"""
