@@ -13,10 +13,10 @@
 ─────██████─────██████████████─████████████───██████████████─
 ─────────────────────────────────────────────────────────────
 */
-//second week of november - tagging event
-//prevent mouse or trap mouse css
-//TODO: 24/10/19: event called oncontext menu -> capture on canvas element; check riot
-//TODO: 17/10/19: make image bigger on hover DONE: change colors of drawing
+//second week of november - tagging event 15th
+//DONE:prevent mouse or trap mouse css
+//DONE: 24/10/19: event called oncontext menu -> capture on canvas element; check riot
+//DONE: 17/10/19: make image bigger on hover DONE: change colors of drawing
 //DONE: 17/10/19: erase on rightclick, make reset go back to last state of current tile
 //DONE: 15/10/19: make draw with mouse on affordances images: one click draw white other click draw black
 //DONE: 7/12/19: after json ready: url with post -> browser sending data to the server (look at riot screenshot), then reload the page to renew json or use ajax get more json
@@ -56,8 +56,6 @@
 
 var tile = document.getElementById("tile");
 var canvas_draw = document.getElementById("myCanvas");
-
-const GRID_SIZE = 8;
 //__________________________________________________________________________________
 /*
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -210,7 +208,7 @@ checkQ.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_solid, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_solid, 16, 16);
         }
     }
 });
@@ -230,7 +228,7 @@ checkW.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_movable, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_movable, 16, 16);
         }
     }
 });
@@ -249,7 +247,7 @@ checkE.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_destroyable, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_destroyable, 16, 16);
         }
     }
 });
@@ -268,7 +266,7 @@ checkA.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_dangerous, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_dangerous, 16, 16);
         }
     }
 });
@@ -287,7 +285,7 @@ checkS.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_gettable, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_gettable, 16, 16);
         }
     }
 });
@@ -306,7 +304,7 @@ checkD.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_portal, 16, 16);
         }
     }
 });
@@ -325,7 +323,7 @@ checkZ.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_usable, 16, 16);
         }
     }
 });
@@ -344,7 +342,7 @@ checkX.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_changeable, 16, 16);
         }
     }
 });
@@ -363,7 +361,7 @@ checkC.addEventListener('change', function(e)
         {
             pos_x = poses['location_' + i]['x'];
             pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_ui, GRID_SIZE, GRID_SIZE);
+            draw_b(pos_x, pos_y, canvas_ui, 16, 16);
         }
     }
 });
@@ -386,10 +384,10 @@ checkC.addEventListener('change', function(e)
 
 */
 //_____________________________________________________________________________________
-var mydata = {};
+var mydata;
 var num = 0;
+var outdata;
 var output; //
-var out_tiles = {};
 //_________________________________________
 
 var i;//replace its name
@@ -411,15 +409,61 @@ var i;//replace its name
 */
 
 //__________________________________________________________________________________
-/*
-$(document).on('click', '#bQ', function() {
-    //var canvas = document.getElementsByTagName('canvas')[1];
-    //var ctx = canvas.getContext("2d");
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas_solid.width = 400;
-    canvas_solid.height = 300;
-  });*/
 
+
+var name_big = document.getElementById("name_big");
+
+
+var drawinn = document.getElementById("drawing_container");
+var canvas_drawinn = document.getElementById("myCanvas_drawing");
+draw_b(0, 0, canvas_drawinn, 808, 712);
+drawinn.style.display = "none";
+
+
+
+var bClose = document.getElementById("bClose");
+bClose.onclick = function()
+{
+    is_big = 0;
+    sizex = 4;
+    sizey = 4;
+    drawinn.style.display = "none";
+    draw_picture(canvas_drawinn.toDataURL(), canvas_list[canvas_drawinn.affordance_id], 256, 224);
+    canvas_drawinn.affordance_id = "-1";
+};
+
+var is_big = 0;
+
+function enlarge_aff()
+{
+    is_big = 1;
+    simulate(this, 32, "Space");
+    document.getElementById("name_big").textContent="Current affordance is: " + this.getAttribute("name");
+    sizex = 12;
+    sizey = 12;
+    drawinn.style.display = "block";
+    draw_picture(output["tag_images"][Object.keys(output["tag_images"])[this.getAttribute("affordance_id")]], canvas_drawinn, 768, 672);
+    canvas_drawinn.affordance_id = this.getAttribute("affordance_id")
+}
+
+var bQ = document.getElementById("bQ");
+bQ.onclick = enlarge_aff;
+var bW = document.getElementById("bW");
+bW.onclick = enlarge_aff;
+var bE = document.getElementById("bE");
+bE.onclick = enlarge_aff;
+var bA = document.getElementById("bA");
+bA.onclick = enlarge_aff;
+var bS = document.getElementById("bS");
+bS.onclick = enlarge_aff;
+var bD = document.getElementById("bD");
+bD.onclick = enlarge_aff;
+var bZ = document.getElementById("bZ");
+bZ.onclick = enlarge_aff;
+var bX = document.getElementById("bX");
+bX.onclick = enlarge_aff;
+var bC = document.getElementById("bC");
+bC.onclick = enlarge_aff;
 
 var b_reset = document.getElementById("b_reset");
 b_reset.style.backgroundColor = "red";
@@ -449,7 +493,7 @@ b_save.onclick = function()
     simulate(b_save, 32, "Space");
     alert("Saved!");
 };
-
+/*
 var check_grid_on = 0;
 var b_grid = document.getElementById("b_grid");
 b_grid.style.backgroundColor = "gray";
@@ -461,7 +505,7 @@ b_grid.onclick = function()
     {
         for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
         {
-            drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
+            drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(150, 150, 150)');
         }
         check_grid_on = 1;
     }
@@ -503,7 +547,7 @@ b_grid_up.onclick = function()
     {
         erase(canvas_list[canvas_id]);
         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+        drawGrid(canvas_list[canvas_id], 256, 224, 16);
     }
 
 };
@@ -519,7 +563,7 @@ b_grid_down.onclick = function()
     {
         erase(canvas_list[canvas_id]);
         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+        drawGrid(canvas_list[canvas_id], 256, 224, 16);
     }
 
 };
@@ -535,7 +579,7 @@ b_grid_left.onclick = function()
     {
         erase(canvas_list[canvas_id]);
         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+        drawGrid(canvas_list[canvas_id], 256, 224, 16);
     }
 
 };
@@ -551,11 +595,11 @@ b_grid_right.onclick = function()
     {
         erase(canvas_list[canvas_id]);
         draw_b(0, 0, canvas_list[canvas_id], 256, 224);
-        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+        drawGrid(canvas_list[canvas_id], 256, 224, 16);
     }
 
 };
-
+*/
 
 function myFunction()
 {
@@ -594,82 +638,50 @@ function myFunction()
 */
 //__________________________________________________________________________________load the script
 
-// (function()
-// {
-//     // Load the script
-//     var script = document.createElement("SCRIPT");
-//     script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
-//     script.type = 'text/javascript';
-//     script.onload = function()
-//     {
-//         var $ = window.jQuery;
-//         // Use $ here...
-//         // $.getJSON("example_data.json", function(json)
-//         // {
-//         //     mydata = json;
-//         //     //console.log(json); // this will show the info it in firebug console
-//         //     output = //get tagger id from somewhere later (?)
-//         //     {
-//         //         "tagger_id":"TestTagger",
-//         //         "image_id":mydata['output']['image_id']
-//         //     };
-//         //     for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
-//         //     {
-//         //         //console.log('inside for');
-//         //         var tile_index = 'tile_' + index;
-//         //         var act_tile = mydata['output']['tiles'][tile_index];
-//         //         //console.log(act_tile);
-//         //         out_tiles[tile_index] =
-//         //         {
-//         //             "tile_id": act_tile['tile_id'],
-//         //             "solid":0,
-//         //             "movable":0,
-//         //             "destroyable":0,
-//         //             "dangerous":0,
-//         //             "gettable":0,
-//         //             "portal":0,
-//         //             "usable":0,
-//         //             "changeable":0,
-//         //             "ui":0
-//         //         };
-//         //     }
-//         // });
-//         $.get("/devjson", function(json)
-//         {
-//             mydata = json;
-//             //console.log(json); // this will show the info it in firebug console
-//             output = //get tagger id from somewhere later (?)
-//             {
-//                 "tagger_id":"TestTagger",
-//                 "image_id":mydata['output']['image_id']
-//             };
-//             for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
-//             {
-//                 //console.log('inside for');
-//                 var tile_index = 'tile_' + index;
-//                 var act_tile = mydata['output']['tiles'][tile_index];
-//                 //console.log(act_tile);
-//                 out_tiles[tile_index] =
-//                 {
-//                     "tile_id": act_tile['tile_id'],
-//                     "solid":0,
-//                     "movable":0,
-//                     "destroyable":0,
-//                     "dangerous":0,
-//                     "gettable":0,
-//                     "portal":0,
-//                     "usable":0,
-//                     "changeable":0,
-//                     "ui":0
-//                 };
-//             }
-//         });
-//     };
-//     document.getElementsByTagName("head")[0].appendChild(script);
-//
-// })();
+(function()
+{
+    // Load the script
+    var script = document.createElement("SCRIPT");
+    script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+    script.type = 'text/javascript';
+    script.onload = function()
+    {
+        var $ = window.jQuery;
+        // Use $ here...
+        $.getJSON("example_data.json", function(json)
+        {
+            mydata = json;
+            //console.log(json); // this will show the info it in firebug console
+            output = //get tagger id from somewhere later (?)
+            {
+                "tagger_id":"TestTagger",
+                "image_id":mydata['output']['image_id']
+            };
+            for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
+            {
+                //console.log('inside for');
+                var tile_index = 'tile_' + index;
+                var act_tile = mydata['output']['tiles'][tile_index];
+                //console.log(act_tile);
+                output[tile_index] =
+                {
+                    "tile_id": act_tile['tile_id'],
+                    "solid":0,
+                    "movable":0,
+                    "destroyable":0,
+                    "dangerous":0,
+                    "gettable":0,
+                    "portal":0,
+                    "usable":0,
+                    "changeable":0,
+                    "ui":0
+                };
+            }
+        });
+    };
+    document.getElementsByTagName("head")[0].appendChild(script);
 
-
+})();
 
 //__________________________________________________________________________________
 
@@ -712,7 +724,7 @@ function draw(x, y, z)
         //drawing code here
         ctx.lineWidth = 3;
         ctx.fillStyle = "rgb(255, 255, 255)";
-        ctx.fillRect (x, y, GRID_SIZE, GRID_SIZE);
+        ctx.fillRect (x, y, 16, 16);
     }
     else
     {
@@ -749,7 +761,7 @@ function erase(x)
     }
 }
 
-function draw_picture(x, z)
+function draw_picture(x, z, size_x, size_y)
 {
     if (z.getContext)
     {
@@ -758,7 +770,7 @@ function draw_picture(x, z)
         //load image first ==v
         img.onload = function()
         {
-            ctx.drawImage(img, 0, 0, 256, 224);
+            ctx.drawImage(img, 0, 0, size_x, size_y);
         };
         img.src = x;
     }
@@ -865,10 +877,10 @@ var drawGrid = function(canvas, w, h, step, grid_color)
 };
 for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
 {
-    //drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE);
+    //drawGrid(canvas_list[canvas_id], 256, 224, 16);
 }
 
-//drawGrid(canvas_solid2, 256, 224, GRID_SIZE);
+//drawGrid(canvas_solid2, 256, 224, 16);
 
 //__________________________________________________________________________________
 /*
@@ -905,23 +917,20 @@ for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
 var shift_down = 0;
 var mouseDown = 0;
 var canvas_color = 'white';
-
+var sizex = 4;
+var sizey = 4;
 
 
 function draw_mouse_affordances(tmp, canvas, e)
 {
     var context = canvas.getContext("2d");
     var pos = getMousePos(canvas, e);
-    var canvas_check = document.elementFromPoint(pos.x, pos.y);
-    if(canvas_check == null)
-    {
-        return ;
-    }
-    console.log(canvas_check);
-    if((mouseDown) && (canvas.id == canvas_check.id ))
+    //var canvas_check = document.elementFromPoint(pos.x, pos.y);
+
+    if(mouseDown)
     {
         context.fillStyle = color;
-    	context.fillRect(pos.x - ((pos.x - grid_movex) % 4), pos.y - ((pos.y - grid_movey) % 4), 4, 4);
+    	context.fillRect(pos.x - ((pos.x - grid_movex) % sizex), pos.y - ((pos.y - grid_movey) % sizey), sizex, sizey);
     }
 }
 
@@ -961,6 +970,45 @@ for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
     window.addEventListener('mousedown', draw_mouse_affordances.bind(null, event, canvas_list[canvas_id]), false);
     canvas_list[canvas_id].addEventListener('contextmenu', event => event.preventDefault());//block rightclick on 'em
 }
+//----------------------------------------------------------------------------
+canvas_drawinn.onmousedown = function()
+{
+    event.preventDefault();
+    if(event.button == 0)
+    {
+        ++mouseDown;
+        color = "white";
+    }
+    if(event.button == 2)
+    {
+        ++mouseDown;
+        color = "black";
+    }
+}
+canvas_drawinn.onmouseup = function()
+{
+    event.preventDefault();
+    if(event.button == 0)
+    {
+
+        --mouseDown;
+        color = "white";
+    }
+    if(event.button == 2)
+    {
+
+        --mouseDown;
+        color = "black";
+    }
+}
+window.addEventListener('mousemove', draw_mouse_affordances.bind(null, event, canvas_drawinn), false);
+window.addEventListener('mousedown', draw_mouse_affordances.bind(null, event, canvas_drawinn), false);
+canvas_drawinn.addEventListener('contextmenu', event => event.preventDefault());//block rightclick on 'em
+//----------------------------------------------------------------------------
+
+
+
+
 
 
 
@@ -1005,84 +1053,11 @@ function getMousePos(canvas, evt)
 
 */
 //__________________________________________________________________________________load the stuff
-var $ = window.jQuery;
+
 window.addEventListener('load', function()
 {
-    console.log('on load')
-    fetch_data();
-    // var solid_img = document.getElementById('solid');
-    // solid_img.src = mydata['output']['image'];
-    // var solid_img = document.getElementById('solid');
-    // solid_img.src = mydata['output']['image'];
-    // var mov_img = document.getElementById('movable');
-    // mov_img.src = mydata['output']['image'];
-    // var dest_img = document.getElementById('destroyable');
-    // dest_img.src = mydata['output']['image'];
-    // var dang_img = document.getElementById('dangerous');
-    // dang_img.src = mydata['output']['image'];
-    // var get_img = document.getElementById('gettable');
-    // get_img.src = mydata['output']['image'];
-    // var port_img = document.getElementById('portal');
-    // port_img.src = mydata['output']['image'];
-    // var us_img = document.getElementById('usable');
-    // us_img.src = mydata['output']['image'];
-    // var chang_img = document.getElementById('changeable');
-    // chang_img.src = mydata['output']['image'];
-    // var ui_img = document.getElementById('ui');
-    // ui_img.src = mydata['output']['image'];
-    // var scrn_img = document.getElementById('screenshot_preview');
-    // scrn_img.src = mydata['output']['image'];
-    // var tile_tmp = document.getElementById('tile');
-    // tile_tmp.src = mydata['output']['tiles']['tile_0']['tile_data'];
-    // var poses = mydata['output']['tiles']['tile_' + num]['locations'];
-    // for(i = 0; i < Object.keys(poses).length; i++)
-    // {
-    //     pos_x = poses['location_' + i]['x'];
-    //     pos_y = poses['location_' + i]['y'];
-    //     draw(pos_x, pos_y, canvas_draw);
-    // }
-})
-
-function fetch_data(){
-  console.log(mydata)
-  $.get("/get_image", function(json)
-  {
-      mydata = json;
-      console.log(mydata); // this will show the info it in firebug console
-      output = //get tagger id from somewhere later (?)
-      {
-          "tagger_id":"TestTagger",
-          "image_id":mydata['output']['image_id']
-      };
-
-      for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
-      {
-          //console.log('inside for');
-          var tile_index = 'tile_' + index;
-          var act_tile = mydata['output']['tiles'][tile_index];
-          //console.log(act_tile);
-          out_tiles[tile_index] =
-          {
-              "tile_id": act_tile['tile_id'],
-              "solid":0,
-              "movable":0,
-              "destroyable":0,
-              "dangerous":0,
-              "gettable":0,
-              "portal":0,
-              "usable":0,
-              "changeable":0,
-              "ui":0
-          };
-       }
-       console.log(mydata)
-       update_images()
-  });
-}
-
-function update_images(){
-    var solid_img = document.getElementById('solid');
-    solid_img.src = mydata['output']['image'];
+    var drawinn_img = document.getElementById('drawer');
+    drawinn_img.src = mydata['output']['image'];
     var solid_img = document.getElementById('solid');
     solid_img.src = mydata['output']['image'];
     var mov_img = document.getElementById('movable');
@@ -1112,23 +1087,7 @@ function update_images(){
         pos_y = poses['location_' + i]['y'];
         draw(pos_x, pos_y, canvas_draw);
     }
-}
-
-function send_output_to_server(){
-    console.log('Space pressed submitting')
-    console.log(output)
-
-    $.ajax({
-      url: "/submit_tags",
-      type: "post",
-      data: JSON.stringify(output),
-      contentType: "application/json",
-      success: function (data) {
-        console.log('Sent labels to server /submit_tags')
-        console.log(data)
-      }
-    });
-}
+})
 //__________________________________________________________________________________
 /*
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1164,12 +1123,12 @@ function send_output_to_server(){
 {
     switch (event.keyCode)
     {
-        case GRID_SIZE: //do this if want shift
+        case 16: //do this if want shift
             shift_down = 0;
         break;
     }
 }*/
-var check_grid = 1;
+var check_grid = 0; //set to 1 later
 document.onkeydown = function(event)
 {
     var pos_x = 0;
@@ -1178,19 +1137,71 @@ document.onkeydown = function(event)
     var poses = mydata['output']['tiles']['tile_' + num]['locations'];
     switch (event.keyCode)
     {
-        case 13: //ENTER
-
-
-            if(grid_checked)
-            {
+        case 8: //Backspace
                 erase(canvas_draw);
                 if(check_grid)
                 {
                     for(var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
                     {
-                        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(0, 0, 0)');
-                        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(0, 0, 0)');
-                        drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(150, 150, 150)');
+                    }
+                }
+
+                num = num - 1;
+                if (num == -1)//check evr time that num doesnt exceed amount of tiles
+                {
+                    num = num + 1;
+                    alert('Out of tiles. Current tile num = ' + num);
+                }
+
+                tile.src = tiles['tile_' + num]['tile_data'];
+                poses = mydata['output']['tiles']['tile_' + num]['locations'];
+
+                for(i = 0; i < Object.keys(poses).length; i++)
+                {
+                    pos_x = poses['location_' + i]['x'];
+                    pos_y = poses['location_' + i]['y'];
+                    draw(pos_x, pos_y, canvas_draw);
+                }
+                //checkboxes_____________________________________________________
+                checkQ.checked = false;
+                checkW.checked = false;
+                checkE.checked = false;
+                checkA.checked = false;
+                checkS.checked = false;
+                checkD.checked = false;
+                checkZ.checked = false;
+                checkX.checked = false;
+                checkC.checked = false;
+                //
+                output["tag_images"] =
+                {
+                    "solid": canvas_solid.toDataURL(),
+                    "movable":canvas_movable.toDataURL(),
+                    "destroyable":canvas_destroyable.toDataURL(),
+                    "dangerous":canvas_dangerous.toDataURL(),
+                    "gettable":canvas_gettable.toDataURL(),
+                    "portal":canvas_portal.toDataURL(),
+                    "usable":canvas_usable.toDataURL(),
+                    "changeable":canvas_changeable.toDataURL(),
+                    "ui":canvas_ui.toDataURL()
+                }
+        break;
+        case 13: //ENTER
+
+
+            //if(grid_checked)
+            //{
+                erase(canvas_draw);
+                if(check_grid)
+                {
+                    for(var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(150, 150, 150)');
                     }
                 }
 
@@ -1233,11 +1244,11 @@ document.onkeydown = function(event)
                     "changeable":canvas_changeable.toDataURL(),
                     "ui":canvas_ui.toDataURL()
                 }
-            }
+            /*}
             else
             {
                 alert("align the grid first!");
-            }
+            }*/
             //__________________________________________________________
         break;
         case 32: //space to save
@@ -1253,8 +1264,6 @@ document.onkeydown = function(event)
                 "changeable":canvas_changeable.toDataURL(),
                 "ui":canvas_ui.toDataURL()
             }
-            output["tiles"] = out_tiles
-            send_output_to_server();
         break;
         //____________________vvv keypress to draw on affordances squares vvv
         case 81: //q
@@ -1266,7 +1275,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_solid);
             }
-            out_tiles['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
+            output['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
             checkQ.checked = true;
             //also replace all tmp with num
         break;
@@ -1280,7 +1289,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_movable);
             }
-            out_tiles['tile_'+num]['movable'] = 1;
+            output['tile_'+num]['movable'] = 1;
             checkW.checked = true;
         break;
 
@@ -1292,7 +1301,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_destroyable);
             }
-            out_tiles['tile_'+num]['destroyable'] = 1;
+            output['tile_'+num]['destroyable'] = 1;
             checkE.checked = true;
         break;
         case 65: //a
@@ -1303,7 +1312,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_dangerous);
             }
-            out_tiles['tile_'+num]['dangerous'] = 1;
+            output['tile_'+num]['dangerous'] = 1;
             checkA.checked = true;
         break;
         case 83: //s
@@ -1314,7 +1323,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_gettable);
             }
-            out_tiles['tile_'+num]['gettable'] = 1;
+            output['tile_'+num]['gettable'] = 1;
             checkS.checked = true;
         break;
         case 68: //d
@@ -1325,7 +1334,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_portal);
             }
-            out_tiles['tile_'+num]['portal'] = 1;
+            output['tile_'+num]['portal'] = 1;
             checkD.checked = true;
         break;
 
@@ -1337,7 +1346,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_usable);
             }
-            out_tiles['tile_'+num]['usable'] = 1;
+            output['tile_'+num]['usable'] = 1;
             checkZ.checked = true;
         break;
 
@@ -1349,7 +1358,7 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_changeable);
             }
-            out_tiles['tile_'+num]['changeable'] = 1;
+            output['tile_'+num]['changeable'] = 1;
             checkX.checked = true;
         break;
 
@@ -1361,80 +1370,76 @@ document.onkeydown = function(event)
                 pos_y = poses['location_' + i]['y'];
                 draw(pos_x, pos_y, canvas_ui);
             }
-            out_tiles['tile_'+num]['ui'] = 1;
+            output['tile_'+num]['ui'] = 1;
             checkC.checked = true;
         break;
 
         case 27: // ECS
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
+            if(!is_big)
             {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw_b(pos_x, pos_y, canvas_solid, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_dangerous, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_movable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_destroyable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_ui, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_gettable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
-                out_tiles['tile_'+num]['solid'] = 0;
-                out_tiles['tile_'+num]['movable'] = 0;
-                out_tiles['tile_'+num]['destroyable'] = 0;
-                out_tiles['tile_'+num]['dangerous'] = 0;
-                out_tiles['tile_'+num]['gettable'] = 0;
-                out_tiles['tile_'+num]['portal'] = 0;
-                out_tiles['tile_'+num]['usable'] = 0;
-                out_tiles['tile_'+num]['changeable'] = 0;
-                out_tiles['tile_'+num]['ui'] = 0;
-                checkQ.checked = false;
-                checkW.checked = false;
-                checkE.checked = false;
-                checkA.checked = false;
-                checkS.checked = false;
-                checkD.checked = false;
-                checkZ.checked = false;
-                checkX.checked = false;
-                checkC.checked = false;
-            }
-            //save and load current state of affordances here
-            //var solid_img = document.getElementById('solid');
-            if(num == 0)
-            {
-                for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+
+
+                poses = mydata['output']['tiles']['tile_' + num]['locations'];
+                for(i = 0; i < Object.keys(poses).length; i++)
                 {
-                    draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+                    pos_x = poses['location_' + i]['x'];
+                    pos_y = poses['location_' + i]['y'];
+                    draw_b(pos_x, pos_y, canvas_solid, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_dangerous, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_movable, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_destroyable, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_ui, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_gettable, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_portal, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_usable, 16, 16);
+                    draw_b(pos_x, pos_y, canvas_changeable, 16, 16);
+                    output['tile_'+num]['solid'] = 0;
+                    output['tile_'+num]['movable'] = 0;
+                    output['tile_'+num]['destroyable'] = 0;
+                    output['tile_'+num]['dangerous'] = 0;
+                    output['tile_'+num]['gettable'] = 0;
+                    output['tile_'+num]['portal'] = 0;
+                    output['tile_'+num]['usable'] = 0;
+                    output['tile_'+num]['changeable'] = 0;
+                    output['tile_'+num]['ui'] = 0;
+                    checkQ.checked = false;
+                    checkW.checked = false;
+                    checkE.checked = false;
+                    checkA.checked = false;
+                    checkS.checked = false;
+                    checkD.checked = false;
+                    checkZ.checked = false;
+                    checkX.checked = false;
+                    checkC.checked = false;
                 }
+                //save and load current state of affordances here
+                //var solid_img = document.getElementById('solid');
+                if(num == 0)
+                {
+                    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+                    }
+                }
+                else
+                {
+                    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        draw_picture(output["tag_images"][Object.keys(output["tag_images"])[canvas_id]], canvas_list[canvas_id], 256, 224);
+                    }
+                }
+
+
+
             }
             else
             {
-                for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-                {
-                    draw_picture(output["tag_images"][Object.keys(output["tag_images"])[canvas_id]], canvas_list[canvas_id]);
-                }
+                alert("Close the big image first!");
             }
-
-
-
-            //solid_img.src = output["tag_images"]["solid"];
         break;
 
-        /*case GRID_SIZE: do this if want shift
+        /*case 16: do this if want shift
             shift_down = 1;
         break;*/
     }
-}
-
-function checkBoxes(checkBoxID){
-    var box = document.getElementById(checkBoxID);
-
-    if (box.checked){
-        box.checked = false;
-    }
-    else{
-        box.checked = true;
-    }
-    console.log(checkBoxID + " is " + box.checked)
 }

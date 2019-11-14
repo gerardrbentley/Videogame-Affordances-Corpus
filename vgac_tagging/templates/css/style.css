@@ -10,7 +10,7 @@ body {
     background-color: #f5f2e6;
 }
 
-#title h1 {
+#title h1 { 
     text-align: center;
     background-image: -webkit-linear-gradient(#378DBC 0%, #B6E8F1 46%, #ffffff 50%, #32120E 54%, #FFC488 58%, #582C11 90%, #EC9B4E 100%);
     -webkit-background-clip: text;
@@ -22,9 +22,8 @@ body {
     line-height: 1;
 }
 
-.grid
+.grid 
 {
-
     display: grid;
     height: 798px;
     width: 808px;
@@ -32,29 +31,51 @@ body {
     grid-gap: 20px;
 }
 
-.container canvas
+.container canvas 
 {
     position: absolute;
     opacity:0.7;
     top:0; left:0;
 }
 
-.grid .container:hover
+.container1
 {
-    z-index: 99999;
-    transform: scale(2.5);
+    position: relative;
+    width: 808px;
+    height: 712px;
 }
 
+.container1 canvas
+{
+    position: absolute;
+    opacity:0.7;
+    top:0; left:0;
+}
 
+#name_big
+{
+    position: relative;
+    top: -716px;
+    left: 80px;
+    color: #605833; font-family: Georgia, arial, serif; 
+}
+
+.button_close
+{
+    position: absolute;
+    top: -25px;
+    left: 450px;
+    color: #605833; font-family: Georgia, arial, serif; 
+}
 
 .name_af
 {
     position: absolute;
     top: 229px;
     left: 80px;
-    color: #605833; font-family: Georgia, arial, serif;
+    color: #605833; font-family: Georgia, arial, serif; 
 }
-.container
+.container 
 {
     position: relative;
     width: 256px;
@@ -81,7 +102,7 @@ body {
     top: 140px;
 }
 
-#instructions
+#instructions 
 {
     font-family: Georgia, arial, serif; font-size: 16px;
     position: absolute;
@@ -91,7 +112,7 @@ body {
 
 #instructions_e
 {
-    color: #605833; font-family: Georgia, arial, serif;
+    color: #605833; font-family: Georgia, arial, serif; 
     position: absolute;
     left: 1200px;
     top: 330px;
@@ -104,21 +125,21 @@ body {
     top: 409px;
 }
 
-#grid_buttons
+#grid_buttons 
 {
     position: absolute;
     left: 900px;
     top: 485px;
 }
 
-#grid_controls
+#grid_controls 
 {
     position: absolute;
     left: 900px;
     top: 561px;
 }
 
-#b_save
+#b_save 
 {
     border: none;
     color: white;
@@ -135,7 +156,7 @@ body {
 }
 #b_save:hover {opacity: 1}
 
-#b_reset
+#b_reset 
 {
     border: none;
     color: white;
@@ -152,7 +173,7 @@ body {
 }
 #b_reset:hover {opacity: 1}
 
-#b_grid
+#b_grid 
 {
     border: none;
     color: white;
@@ -169,7 +190,7 @@ body {
 }
 #b_grid:hover {opacity: 1}
 
-#b_grid_save
+#b_grid_save 
 {
     border: none;
     color: white;
@@ -187,7 +208,7 @@ body {
 }
 #b_grid_save:hover {opacity: 1}
 
-#b_grid_reset
+#b_grid_reset 
 {
     border: none;
     color: white;
@@ -206,7 +227,7 @@ body {
 #b_grid_reset:hover {opacity: 1}
 
 
-#b_grid_up
+#b_grid_up 
 {
     border: none;
     color: white;
@@ -225,7 +246,7 @@ body {
 
 
 
-#b_grid_left
+#b_grid_left 
 {
     border: none;
     color: white;
@@ -242,7 +263,7 @@ body {
 }
 #b_grid_left:hover {opacity: 1}
 
-#b_grid_right
+#b_grid_right 
 {
     border: none;
     color: white;
