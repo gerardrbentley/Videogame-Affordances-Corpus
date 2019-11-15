@@ -24,7 +24,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /data/faim/eventgames:/games:z
+      - /data/faim/evgames/test_games:/games:z
 
 volumes:
   flask-app-db:
