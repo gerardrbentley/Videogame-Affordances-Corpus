@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Video Game Affordanes</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+
+    <script src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js' ></script>
+</head>
+
+<body>
+     <link href="/devcss" rel="stylesheet">
+     <div id="tagger_id" tagger={{tagger_id}}> </div>
+
+
+     <div class="header">
+          <div id="title">
+              <h1>Video Game Affordances</h1>
+          </div>
+          <div id ="instructions">
+               <h1>Basic Instructions / Introduction</h1>
+          </div>
+          <div id ="instructions_e">
+             <p>You're tasked with labelling screenshots with their affordances. Affordances are basically the interactions that a character can have with a given obejct or area of the screen.</p>
+             <p>We are not concerned with perfection or 100% `correct` labels. We are interested in your perception of the screenshots and what you expect the different objects in the image to do</p>
+             <p>You'll label each unique 8x8 pixel tile and use mouse buttons to fix the labelled images as you see fit</p>
+
+               <p>Below are some examples of our 9 videogame affordances in Super Mario Bros 3 and Legend of Zelda. We'll go over them from top to bottom and left to right. The orientation of the grid is different in this example than in the tagger</p>
+             </div>
+             <div>
+                  <p>1. Solid things block the character's movement. Think of walls and floor blocks</p>
+                  <p>2. Destroyable things might be removed from the screen by some action or interaction. Think of breakable/crumbling blocks and enemies</p>
+                  <p>3. The player character can directly interact with usable things. Think of buttons and chests</p>
+                  <p>4. Movable things may move around in the screen. Usually the player character, pushable blocks, enemies</p>
+                  <p>5. Dangerous things will harm the player character. Think of enemies, projectiles, fires, spikes, etc.</p>
+                  <p>6. Changeable things may change form after some interaction or event. Think of locked doors, switches, blocks that change when pressed</p>
+                  <p>7. Portals move to a different area of the game world. Think of doors, edges of maps, stairs</p>
+                  <p>8. Gettable things can be acquired and used by the player character, usually by touching. Think of power-ups, keys, and other items</p>
+                  <p>9. UI elements are things that aren't a part the game world. Think of a health bar, map, inventory, menus</p>
+                  <p>NOTE: Many objects and characters have multiple affordances associated with them, in which case all relevant affordances should be applied. Most enemies are Dangerous and Destroyable, most player characters are both Movable and Destroyable</p>
+
+             </div>
+               <img id = "examples" src="/devexamples">
+          <form action="/?tagger-id={{tagger_id}}" method="get">
+               <button class="button" formaction="/?tagger-id={{tagger_id}}" type="submit" >Go Tag!</button>
+          </form>
+
+
+
+     </div>
+
+
+
+</body>
+
+</html>

@@ -1,16 +1,16 @@
-@import url(https://fonts.googleapis.com/css?family=Mr+Dafoe);
+/* @import url(https://fonts.googleapis.com/css?family=Mr+Dafoe); */
 @import url(https://fonts.googleapis.com/css?family=Titillium+Web:900);
-@import url(https://fonts.googleapis.com/css?family=Righteous);
+/* @import url(https://fonts.googleapis.com/css?family=Righteous);
 @import url(https://fonts.googleapis.com/css?family=Candal);
 
 @import url(https://fonts.googleapis.com/css?family=Permanent+Marker);
 
-@import url(https://fonts.googleapis.com/css?family=Monoton);
+@import url(https://fonts.googleapis.com/css?family=Monoton); */
 body {
     background-color: #f5f2e6;
 }
 
-#title h1 { 
+#title h1 {
     text-align: center;
     background-image: -webkit-linear-gradient(#378DBC 0%, #B6E8F1 46%, #ffffff 50%, #32120E 54%, #FFC488 58%, #582C11 90%, #EC9B4E 100%);
     -webkit-background-clip: text;
@@ -22,7 +22,7 @@ body {
     line-height: 1;
 }
 
-.grid 
+.grid
 {
     display: grid;
     height: 798px;
@@ -31,7 +31,7 @@ body {
     grid-gap: 20px;
 }
 
-.container canvas 
+.container canvas
 {
     position: absolute;
     opacity:0.7;
@@ -57,7 +57,7 @@ body {
     position: relative;
     top: -716px;
     left: 80px;
-    color: #605833; font-family: Georgia, arial, serif; 
+    color: #605833; font-family: Georgia, arial, serif;
 }
 
 .button_close
@@ -65,7 +65,7 @@ body {
     position: absolute;
     top: -25px;
     left: 450px;
-    color: #605833; font-family: Georgia, arial, serif; 
+    color: #605833; font-family: Georgia, arial, serif;
 }
 
 .name_af
@@ -73,9 +73,9 @@ body {
     position: absolute;
     top: 229px;
     left: 80px;
-    color: #605833; font-family: Georgia, arial, serif; 
+    color: #605833; font-family: Georgia, arial, serif;
 }
-.container 
+.container
 {
     position: relative;
     width: 256px;
@@ -83,12 +83,12 @@ body {
 }
 
 
-#screen_preview {
+/* #screen_preview {
     left: 900px;
     top: 140px;
     position: absolute;
 
-}
+} */
 
 .container img
 {
@@ -96,50 +96,62 @@ body {
     height: 100%;
 }
 
-#tagging img{
+/* #tagging img{
     position: absolute;
     left: 1200px;
     top: 140px;
-}
+} */
 
-#instructions 
+#instructions
 {
     font-family: Georgia, arial, serif; font-size: 16px;
-    position: absolute;
+    /* position: absolute;
     left: 1200px;
-    top: 286px;
+    top: 286px; */
 }
 
 #instructions_e
 {
-    color: #605833; font-family: Georgia, arial, serif; 
-    position: absolute;
+    color: #605833; font-family: Georgia, arial, serif;
+    /* position: absolute;
     left: 1200px;
-    top: 330px;
+    top: 330px; */
 }
 
-#buttons
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+/* #buttons
 {
     position: absolute;
     left: 900px;
     top: 409px;
 }
 
-#grid_buttons 
+#grid_buttons
 {
     position: absolute;
     left: 900px;
     top: 485px;
 }
 
-#grid_controls 
+#grid_controls
 {
     position: absolute;
     left: 900px;
     top: 561px;
-}
+} */
 
-#b_save 
+#b_save
 {
     border: none;
     color: white;
@@ -156,7 +168,7 @@ body {
 }
 #b_save:hover {opacity: 1}
 
-#b_reset 
+#b_reset
 {
     border: none;
     color: white;
@@ -173,7 +185,7 @@ body {
 }
 #b_reset:hover {opacity: 1}
 
-#b_grid 
+#b_grid
 {
     border: none;
     color: white;
@@ -190,7 +202,7 @@ body {
 }
 #b_grid:hover {opacity: 1}
 
-#b_grid_save 
+#b_grid_save
 {
     border: none;
     color: white;
@@ -208,7 +220,7 @@ body {
 }
 #b_grid_save:hover {opacity: 1}
 
-#b_grid_reset 
+#b_grid_reset
 {
     border: none;
     color: white;
@@ -227,7 +239,7 @@ body {
 #b_grid_reset:hover {opacity: 1}
 
 
-#b_grid_up 
+#b_grid_up
 {
     border: none;
     color: white;
@@ -246,7 +258,7 @@ body {
 
 
 
-#b_grid_left 
+#b_grid_left
 {
     border: none;
     color: white;
@@ -263,7 +275,7 @@ body {
 }
 #b_grid_left:hover {opacity: 1}
 
-#b_grid_right 
+#b_grid_right
 {
     border: none;
     color: white;
@@ -296,3 +308,52 @@ body {
     cursor: pointer;
 }
 #b_grid_down:hover {opacity: 1}
+
+
+#curr_tiles{
+     text-align: center;
+     font-size: 18px;
+}
+
+
+
+body {
+  margin: 0;
+}
+
+/* Style the header */
+.header {
+  background-color: #f1f1f1;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 10px;
+}
+
+/* Left and right column */
+.column.side {
+  width: 808px;
+}
+
+/* Middle column */
+/* .column.middle {
+  width: 30%;
+} */
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+  .column.side, .column.middle {
+    width: 100%;
+  }
+}

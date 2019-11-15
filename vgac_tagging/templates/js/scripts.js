@@ -1081,6 +1081,8 @@ function update_images(){
     var tile_tmp = document.getElementById('tile');
     tile_tmp.src = mydata['output']['tiles']['tile_0']['tile_data'];
 
+    document.getElementById("curr_tiles").textContent=String(num) + "/" + String(Object.keys(mydata['output']['tiles']).length) + " Tiles";
+
 
     grid_movex = mydata['output']['x_offset']
     grid_movey = mydata['output']['y_offset']
@@ -1120,6 +1122,7 @@ function send_output_to_server(){
       success: function (data) {
         console.log('Sent labels to server /submit_tags')
         console.log(data)
+        fetch_data()
       }
     });
 }
@@ -1254,18 +1257,8 @@ document.onkeydown = function(event)
                 checkX.checked = false;
                 checkC.checked = false;
                 //
-                output["tag_images"] =
-                {
-                    "solid": canvas_solid.toDataURL(),
-                    "movable":canvas_movable.toDataURL(),
-                    "destroyable":canvas_destroyable.toDataURL(),
-                    "dangerous":canvas_dangerous.toDataURL(),
-                    "gettable":canvas_gettable.toDataURL(),
-                    "portal":canvas_portal.toDataURL(),
-                    "usable":canvas_usable.toDataURL(),
-                    "changeable":canvas_changeable.toDataURL(),
-                    "ui":canvas_ui.toDataURL()
-                }
+                saveAffordanceImages();
+                document.getElementById("curr_tiles").textContent=String(num) + "/" + String(Object.keys(mydata['output']['tiles']).length) + " Tiles";
         break;
         case 13: //ENTER
             if(grid_checked)
@@ -1310,6 +1303,8 @@ document.onkeydown = function(event)
                 checkC.checked = false;
                 //
                 saveAffordanceImages();
+                document.getElementById("curr_tiles").textContent=String(num) + "/" + String(Object.keys(mydata['output']['tiles']).length) + " Tiles";
+
             }
             else
             {

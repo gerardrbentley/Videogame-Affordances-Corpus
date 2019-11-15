@@ -66,7 +66,13 @@ def encode_tile_from_dict(entry):
 def tag_image():
     tagger_id = request.args.get(
         'tagger-id', default='default-tagger', type=str)
-    return render_template('base.html', tagger_id=tagger_id)
+    return render_template('base2.html', tagger_id=tagger_id)
+
+@bp.route("/instruct")
+def instruct():
+    tagger_id = request.args.get(
+        'tagger-id', default='default-tagger', type=str)
+    return render_template('instruct.html', tagger_id=tagger_id)
 
 
 @bp.route("/devjs")
@@ -74,11 +80,16 @@ def static_js():
     logger.debug('DEV JS CALLED')
     return send_from_directory('templates/js/', 'scripts.js')
 
+@bp.route("/devexamples")
+def static_png():
+    logger.debug('DEV examlpes CALLED')
+    return send_from_directory('templates/', 'examples.png')
+
 
 @bp.route("/devcss")
 def static_css():
     logger.debug('DEV CSS CALLED')
-
+    logger.debug('CSS/Style.cs')
     return send_from_directory('templates/css/', 'style.css')
 
 
