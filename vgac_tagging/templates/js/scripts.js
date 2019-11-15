@@ -322,6 +322,7 @@ bClose.onclick = function()
     drawinn.style.display = "none";
     draw_picture(canvas_drawinn.toDataURL(), canvas_list[canvas_drawinn.affordance_id], 256, 224);
     canvas_drawinn.affordance_id = "-1";
+    saveAffordanceImages();
 };
 
 var is_big = 0;
@@ -329,6 +330,7 @@ var is_big = 0;
 function enlarge_aff()
 {
     is_big = 1;
+    saveAffordanceImages();
     document.getElementById("name_big").textContent="Current affordance is: " + this.getAttribute("name");
     sizex = 12;
     sizey = 12;
@@ -364,15 +366,6 @@ b_reset.style.fontVariant = "small-caps";
 b_reset.onclick = function()
 {
     simulate(b_reset, 27, "ESC");
-    checkQ.checked = false;
-    checkW.checked = false;
-    checkE.checked = false;
-    checkA.checked = false;
-    checkS.checked = false;
-    checkD.checked = false;
-    checkZ.checked = false;
-    checkX.checked = false;
-    checkC.checked = false;
 };
 
 var b_save = document.getElementById("b_save");
@@ -1197,6 +1190,21 @@ function flip_affordance(whichcheckbox, whichcanvas){
     }
 }
 
+function saveAffordanceImages(){
+  output["tag_images"] =
+  {
+      "solid": canvas_solid.toDataURL(),
+      "movable":canvas_movable.toDataURL(),
+      "destroyable":canvas_destroyable.toDataURL(),
+      "dangerous":canvas_dangerous.toDataURL(),
+      "gettable":canvas_gettable.toDataURL(),
+      "portal":canvas_portal.toDataURL(),
+      "usable":canvas_usable.toDataURL(),
+      "changeable":canvas_changeable.toDataURL(),
+      "ui":canvas_ui.toDataURL()
+  }
+  console.log('saved to output[tagimages]')
+}
 
 var CHECK_GRID = 0;
 document.onkeydown = function(event)
@@ -1301,18 +1309,7 @@ document.onkeydown = function(event)
                 checkX.checked = false;
                 checkC.checked = false;
                 //
-                output["tag_images"] =
-                {
-                    "solid": canvas_solid.toDataURL(),
-                    "movable":canvas_movable.toDataURL(),
-                    "destroyable":canvas_destroyable.toDataURL(),
-                    "dangerous":canvas_dangerous.toDataURL(),
-                    "gettable":canvas_gettable.toDataURL(),
-                    "portal":canvas_portal.toDataURL(),
-                    "usable":canvas_usable.toDataURL(),
-                    "changeable":canvas_changeable.toDataURL(),
-                    "ui":canvas_ui.toDataURL()
-                }
+                saveAffordanceImages();
             }
             else
             {
@@ -1321,18 +1318,7 @@ document.onkeydown = function(event)
             //__________________________________________________________
         break;
         case 32: //space to save
-            output["tag_images"] =
-            {
-                "solid": canvas_solid.toDataURL(),
-                "movable":canvas_movable.toDataURL(),
-                "destroyable":canvas_destroyable.toDataURL(),
-                "dangerous":canvas_dangerous.toDataURL(),
-                "gettable":canvas_gettable.toDataURL(),
-                "portal":canvas_portal.toDataURL(),
-                "usable":canvas_usable.toDataURL(),
-                "changeable":canvas_changeable.toDataURL(),
-                "ui":canvas_ui.toDataURL()
-            }
+            saveAffordanceImages();
             output["tiles"] = out_tiles
             send_output_to_server();
         break;
@@ -1387,15 +1373,15 @@ document.onkeydown = function(event)
                     draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
                     draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
                     draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
-                    output['tile_'+num]['solid'] = 0;
-                    output['tile_'+num]['movable'] = 0;
-                    output['tile_'+num]['destroyable'] = 0;
-                    output['tile_'+num]['dangerous'] = 0;
-                    output['tile_'+num]['gettable'] = 0;
-                    output['tile_'+num]['portal'] = 0;
-                    output['tile_'+num]['usable'] = 0;
-                    output['tile_'+num]['changeable'] = 0;
-                    output['tile_'+num]['ui'] = 0;
+                    out_tiles['tile_'+num]['solid'] = 0;
+                    out_tiles['tile_'+num]['movable'] = 0;
+                    out_tiles['tile_'+num]['destroyable'] = 0;
+                    out_tiles['tile_'+num]['dangerous'] = 0;
+                    out_tiles['tile_'+num]['gettable'] = 0;
+                    out_tiles['tile_'+num]['portal'] = 0;
+                    out_tiles['tile_'+num]['usable'] = 0;
+                    out_tiles['tile_'+num]['changeable'] = 0;
+                    out_tiles['tile_'+num]['ui'] = 0;
                     checkQ.checked = false;
                     checkW.checked = false;
                     checkE.checked = false;
