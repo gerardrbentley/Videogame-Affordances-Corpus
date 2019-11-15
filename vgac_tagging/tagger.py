@@ -105,7 +105,8 @@ def get_image_to_tag():
     game = image_data['game']
     data = image_data['data']
 
-    meta = {i:d[i] for i in image_data if i != 'data' and i != 'game' and i != 'image_id'}
+    meta = {i: image_data[i] for i in image_data if i
+            != 'data' and i != 'game' and i != 'image_id'}
     y_offset = image_data['y_offset']
     x_offset = image_data['x_offset']
     logger.debug("Untagged Image data retrieved image_id: {}".format(image_id))

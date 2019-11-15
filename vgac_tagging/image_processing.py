@@ -150,6 +150,7 @@ def gen_grid(width, height, grid_size=16, ui_height=0, ui_position='top', grid_o
 
     return rows, cols
 
+
 def grid_using_crop(width, height, grid_size=8, grid_offset_x=0, grid_offset_y=0, crop_l=0, crop_r=0, crop_t=0, crop_b=0):
     row_num = (height - crop_t - crop_b) // grid_size
     if (row_num * grid_size) + crop_t + grid_offset_y > height - crop_b:
@@ -167,11 +168,12 @@ def grid_using_crop(width, height, grid_size=8, grid_offset_x=0, grid_offset_y=0
 
     return rows, cols
 
+
 def point_on_grid(c, r, cols, rows):
     return c in cols and r in rows
 
 
-def unique_tiles_using_meta(image, y_offset=0, x_offset=0, crop_l=0, crop_r=0, crop_t=0, crop_b=0, ui_x=0, ui_y=0, ui_height=0, ui_width=0):
+def unique_tiles_using_meta(image, y_offset=0, x_offset=0, width=256, height=224, crop_l=0, crop_r=0, crop_t=0, crop_b=0, ui_x=0, ui_y=0, ui_height=0, ui_width=0):
     print('Finding unique tiles in img')
     grid_size = 8
 
@@ -183,7 +185,8 @@ def unique_tiles_using_meta(image, y_offset=0, x_offset=0, crop_l=0, crop_r=0, c
     visited_locations = []
     tile_ctr = 0
     skip_ctr = 0
-    rows, cols = grid_using_crop(width, height, grid_size, x_offset, y_offset, crop_l, crop_r, crop_t, crop_b)
+    rows, cols = grid_using_crop(
+        width, height, grid_size, x_offset, y_offset, crop_l, crop_r, crop_t, crop_b)
     for r in np.unique(rows):
         for c in np.unique(cols):
             if((r, c) not in visited_locations):
@@ -220,6 +223,7 @@ def unique_tiles_using_meta(image, y_offset=0, x_offset=0, crop_l=0, crop_r=0, c
         len(visited_locations), len(img_tiles), skip_ctr, (len(img_tiles)+skip_ctr)))
     print(img_tiles[0]['tile_data'].shape)
     return img_tiles
+
 
 """
 Takes opencv image

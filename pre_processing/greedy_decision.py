@@ -113,7 +113,16 @@ def main(args):
         x_offsets.append(curr_options[best_idx]['x_offset'])
 
         meta = {'y_offset': curr_options[best_idx]['y_offset'],
-                'x_offset': curr_options[best_idx]['x_offset']}
+                'x_offset': curr_options[best_idx]['x_offset'],
+                'crop_l': args.crop_l,
+                'crop_r': args.crop_r,
+                'crop_b': args.crop_b,
+                'crop_t': args.crop_t,
+                'ui_x': args.ui_x,
+                'ui_y': args.ui_y,
+                'ui_width': args.ui_width,
+                'ui_height': args.ui_height
+                }
         with open(os.path.join(
                 args.games_dir, args.game, 'screenshots', file_name, f'{file_name}.json'), 'w') as file:
             json.dump(meta, file)
@@ -158,6 +167,22 @@ def parse_args():
     parser.add_argument('--k', type=int,
                         default=5, help='num potential tile sets per image')
     parser.add_argument('--save-img', action='store_true')
+    parser.add_argument('--crop_l', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--crop_r', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--crop_t', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--crop_b', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--ui_x', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--ui_y', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--ui_width', type=int,
+                        default=0, help='ignore area of screenshots')
+    parser.add_argument('--ui_height', type=int,
+                        default=0, help='ignore area of screenshots')
 
     args = parser.parse_args()
 

@@ -77,6 +77,7 @@ def offsets_from_json(screenshots_dir, file_uuid):
             return (data['y_offset'], data['x_offset'])
     return (0, 0)
 
+
 def metadata_from_json(screenshots_dir, file_uuid):
     pth = os.path.join(screenshots_dir, file_uuid, f'{file_uuid}.json')
     if os.path.isfile(pth):
@@ -114,14 +115,14 @@ def ingest_filesystem_data(dir=os.path.join('/games')):
     for game, screenshot_files, tile_files in get_image_files(dir):
         # num_images, num_tags = ingest_screenshot_files_with_offsets(
         #         screenshot_files, game, dir)
-        num_images, num_tags = ingest_screenshots(
+        num_images, num_tags, num_skipped = ingest_screenshots(
             game, os.path.join(dir, game, 'screenshots'))
 
         # num_tiles = ingest_tiles_from_pickle(game, dir)
         num_tiles = ingest_tile_files(tile_files, game, dir)
         # ingest_sprite_files(sprite_files, game), dir
         total_ingested[game] = {
-                'num_images': num_images, 'num_screenshot_tags': num_tags, 'num_tiles': num_tiles}
+                'num_images': num_images, 'num_screenshot_tags': num_tags, 'num_tiles': num_tiles, 'skipped_images': num_skipped}
     print('TOTALS: {}'.format(total_ingested))
 
 
@@ -164,7 +165,7 @@ def ingest_screenshot_files_with_offsets(files, game, dir):
 def ingest_screenshots(game, screenshots_dir):
     ctr = 0
     tag_ctr = 0
-
+    skip_ctr = 0
     image_folders = next(os.walk(screenshots_dir))[1]
 
     for screenshot_uuid in image_folders:
@@ -174,6 +175,7 @@ def ingest_screenshots(game, screenshots_dir):
         is_in = check_uuid_in_screenshots(screenshot_uuid)
         if is_in:
             print(f'SKIPPED INGESTING IMAGE: {screenshot_uuid}')
+            skip_ctr += 1
         else:
             metadata = metadata_from_json(
                 screenshots_dir, screenshot_uuid)
@@ -194,13 +196,19 @@ def ingest_screenshots(game, screenshots_dir):
             for label_file in label_files:
                 tagger_npy = os.path.split(label_file)[1]
                 tagger = os.path.splitext(tagger_npy)[0]
-                label = P.load_label_from_tagger(label_file)
-                if label is not None:
-                    ingest_screenshot_tags(
-                        label, screenshot_uuid, tagger=tagger)
-                    tag_ctr += 1
+                has_tagged = check_tagger_tagged_screenshot(
+                    screenshot_uuid, tagger)
+                if has_tagged:
+                    print(
+                        f'SKIPPED INGESTING Tags:{tagger} on {screenshot_uuid}')
+                else:
+                    label = P.load_label_from_tagger(label_file)
+                    if label is not None:
+                        ingest_screenshot_tags(
+                            label, screenshot_uuid, tagger=tagger)
+                        tag_ctr += 1
         ctr += 1
-    return ctr, tag_ctr
+    return ctr, tag_ctr, skip_ctr
 
 
 def export_to_filesystem(dest='/out_dataset'):
@@ -392,6 +400,7 @@ def ingest_tile_files(tile_files, game, dir):
 #     pass
 #
 
+
 def insert_screenshot(image_uuid, game, width, height, image, y_offset=0, x_offset=0, crop_l=0, crop_r=0, crop_t=0, crop_b=0, ui_x=0, ui_y=0, ui_height=0, ui_width=0):
     cmd = text(
         """INSERT INTO screenshots(image_id, game, width, height, y_offset, x_offset, created_on, data, crop_l, crop_r, crop_t, crop_b, ui_x, ui_y, ui_height, ui_width)
@@ -539,6 +548,7 @@ def insert_sprite_tag(sprite_id, tagger, solid, movable, destroyable, dangerous,
     )
     get_connection().execute(cmd)
 
+
 def screenshot_dictify(row):
     output = {
             'image_id': row['image_id'],
@@ -558,6 +568,7 @@ def screenshot_dictify(row):
             'ui_height': row['ui_height'],
         }
     return output
+
 
 def get_random_screenshot():
     cmd = text(
@@ -763,6 +774,20 @@ def check_uuid_in_screenshots(id):
     )
     cmd = cmd.bindparams(
         bindparam('i', value=id, type_=UUID),
+    )
+    res = get_connection().execute(cmd)
+    for row in res:
+        return row['exists']
+
+
+def check_tagger_tagged_screenshot(id, tagger):
+    cmd = text(
+        """SELECT EXISTS(SELECT 1 FROM screenshot_tags where image_id = :i and tagger_id = :t) as "exists"
+        """
+    )
+    cmd = cmd.bindparams(
+        bindparam('i', value=id, type_=UUID),
+        bindparam('t', value=tagger, type_=String),
     )
     res = get_connection().execute(cmd)
     for row in res:
