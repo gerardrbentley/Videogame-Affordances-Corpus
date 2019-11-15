@@ -114,7 +114,7 @@ function simulate(el, keyCode, key)
         bubbles: true
     })
     el.dispatchEvent(evtDown)
-    let evtPress = new KeyboardEvent('keypress',
+    let evtPress = new KeyboardEvent('keyup',
     {
         keyCode: keyCode,
         which: keyCode,
@@ -198,174 +198,57 @@ var canvas_list = [canvas_solid, canvas_movable, canvas_destroyable, canvas_dang
 var checkQ = document.getElementById("cbQ");
 checkQ.addEventListener('change', function(e)
 {
-    if(checkQ.checked)
-    {
-        simulate(checkQ, 81, "Q");
-    }
-    if(checkQ.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_solid, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkQ.checked = !checkQ.checked
+    simulate(checkQ, 81, "Q");
 });
 
 var checkW = document.getElementById("cbW");
 checkW.addEventListener('change', function(e)
 {
-    if(checkW.checked)
-    {
-        simulate(checkW, 87, "W");
-    }
-    if(checkW.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_movable, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkW.checked = !checkW.checked
+    simulate(checkW, 87, "W");
 });
 var checkE = document.getElementById("cbE");
 checkE.addEventListener('change', function(e)
 {
-    if(checkE.checked)
-    {
-        simulate(checkE, 69, "E");
-    }
-    if(checkE.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_destroyable, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkE.checked = !checkE.checked
+    simulate(checkE, 69, "E");
 });
 var checkA = document.getElementById("cbA");
 checkA.addEventListener('change', function(e)
 {
-    if(checkA.checked)
-    {
-        simulate(checkA, 65, "A");
-    }
-    if(checkA.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_dangerous, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkA.checked = !checkA.checked
+    simulate(checkA, 65, "A");
 });
 var checkS = document.getElementById("cbS");
 checkS.addEventListener('change', function(e)
 {
-    if(checkS.checked)
-    {
-        simulate(checkS, 83, "S");
-    }
-    if(checkS.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_gettable, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkS.checked = !checkS.checked
+    simulate(checkS, 83, "S");
 });
 var checkD = document.getElementById("cbD");
 checkD.addEventListener('change', function(e)
 {
-    if(checkD.checked)
-    {
-        simulate(checkD, 68, "D");
-    }
-    if(checkD.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkD.checked = !checkD.checked
+    simulate(checkD, 68, "D");
 });
 var checkZ = document.getElementById("cbZ");
 checkZ.addEventListener('change', function(e)
 {
-    if(checkZ.checked)
-    {
-        simulate(checkZ, 90, "Z");
-    }
-    if(checkZ.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkZ.checked = !checkZ.checked
+    simulate(checkZ, 90, "Z");
 });
 var checkX = document.getElementById("cbX");
 checkX.addEventListener('change', function(e)
 {
-    if(checkX.checked)
-    {
-        simulate(checkX, 88, "X");
-    }
-    if(checkX.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkX.checked = !checkX.checked
+    simulate(checkX, 88, "X");
 });
 var checkC = document.getElementById("cbC");
 checkC.addEventListener('change', function(e)
 {
-    if(checkC.checked)
-    {
-        simulate(checkC, 67, "C");
-    }
-    if(checkC.checked == false)
-    {
-
-        poses = mydata['output']['tiles']['tile_' + num]['locations'];
-        for(i = 0; i < Object.keys(poses).length; i++)
-        {
-            pos_x = poses['location_' + i]['x'];
-            pos_y = poses['location_' + i]['y'];
-            draw_b(pos_x, pos_y, canvas_ui, GRID_SIZE, GRID_SIZE);
-        }
-    }
+    checkC.checked = !checkC.checked
+    simulate(checkC, 67, "C");
 });
 
 //_____________________________________________________________________________________
@@ -420,6 +303,58 @@ $(document).on('click', '#bQ', function() {
     canvas_solid.height = 300;
   });*/
 
+var name_big = document.getElementById("name_big");
+
+
+var drawinn = document.getElementById("drawing_container");
+var canvas_drawinn = document.getElementById("myCanvas_drawing");
+draw_b(0, 0, canvas_drawinn, 808, 712);
+drawinn.style.display = "none";
+
+
+
+var bClose = document.getElementById("bClose");
+bClose.onclick = function()
+{
+    is_big = 0;
+    sizex = 4;
+    sizey = 4;
+    drawinn.style.display = "none";
+    draw_picture(canvas_drawinn.toDataURL(), canvas_list[canvas_drawinn.affordance_id], 256, 224);
+    canvas_drawinn.affordance_id = "-1";
+};
+
+var is_big = 0;
+
+function enlarge_aff()
+{
+    is_big = 1;
+    document.getElementById("name_big").textContent="Current affordance is: " + this.getAttribute("name");
+    sizex = 12;
+    sizey = 12;
+    drawinn.style.display = "block";
+    draw_picture(output["tag_images"][Object.keys(output["tag_images"])[this.getAttribute("affordance_id")]], canvas_drawinn, 768, 672);
+    canvas_drawinn.affordance_id = this.getAttribute("affordance_id")
+}
+
+var bQ = document.getElementById("bQ");
+bQ.onclick = enlarge_aff;
+var bW = document.getElementById("bW");
+bW.onclick = enlarge_aff;
+var bE = document.getElementById("bE");
+bE.onclick = enlarge_aff;
+var bA = document.getElementById("bA");
+bA.onclick = enlarge_aff;
+var bS = document.getElementById("bS");
+bS.onclick = enlarge_aff;
+var bD = document.getElementById("bD");
+bD.onclick = enlarge_aff;
+var bZ = document.getElementById("bZ");
+bZ.onclick = enlarge_aff;
+var bX = document.getElementById("bX");
+bX.onclick = enlarge_aff;
+var bC = document.getElementById("bC");
+bC.onclick = enlarge_aff;
 
 var b_reset = document.getElementById("b_reset");
 b_reset.style.backgroundColor = "red";
@@ -451,22 +386,22 @@ b_save.onclick = function()
 };
 
 var check_grid_on = 0;
-var b_grid = document.getElementById("b_grid");
-b_grid.style.backgroundColor = "gray";
-b_grid.style.fontSize = "x-large";
-b_grid.style.fontVariant = "small-caps";
-b_grid.onclick = function()
-{
-    if(!check_grid_on)
-    {
-        // for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-        // {
-        //     drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
-        // }
-        drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
-        check_grid_on = 1;
-    }
-};
+// var b_grid = document.getElementById("b_grid");
+// b_grid.style.backgroundColor = "gray";
+// b_grid.style.fontSize = "x-large";
+// b_grid.style.fontVariant = "small-caps";
+// b_grid.onclick = function()
+// {
+//     if(!check_grid_on)
+//     {
+//         // for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+//         // {
+//         //     drawGrid(canvas_list[canvas_id], 256, 224, GRID_SIZE, 'rgb(150, 150, 150)');
+//         // }
+//         drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
+//         check_grid_on = 1;
+//     }
+// };
 
 // var b_grid_save = document.getElementById("b_grid_save");
 // b_grid_save.style.backgroundColor = "darkgreen";
@@ -757,7 +692,7 @@ function erase(x)
     }
 }
 
-function draw_picture(x, z)
+function draw_picture(x, z, size_x, size_y)
 {
     if (z.getContext)
     {
@@ -766,7 +701,7 @@ function draw_picture(x, z)
         //load image first ==v
         img.onload = function()
         {
-            ctx.drawImage(img, 0, 0, 256, 224);
+            ctx.drawImage(img, 0, 0, size_x, size_y);
         };
         img.src = x;
     }
@@ -913,6 +848,8 @@ for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
 var shift_down = 0;
 var mouseDown = 0;
 var canvas_color = 'white';
+var sizex = 4;
+var sizey = 4;
 
 
 
@@ -920,16 +857,12 @@ function draw_mouse_affordances(tmp, canvas, e)
 {
     var context = canvas.getContext("2d");
     var pos = getMousePos(canvas, e);
-    var canvas_check = document.elementFromPoint(pos.x, pos.y);
-    if(canvas_check == null)
-    {
-        return ;
-    }
-    console.log(canvas_check);
-    if((mouseDown) && (canvas.id == canvas_check.id ))
+    //var canvas_check = document.elementFromPoint(pos.x, pos.y);
+
+    if(mouseDown)
     {
         context.fillStyle = color;
-    	context.fillRect(pos.x - ((pos.x - grid_movex) % 4), pos.y - ((pos.y - grid_movey) % 4), 4, 4);
+    	context.fillRect(pos.x - ((pos.x - grid_movex) % sizex), pos.y - ((pos.y - grid_movey) % sizey), sizex, sizey);
     }
 }
 
@@ -969,6 +902,42 @@ for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
     window.addEventListener('mousedown', draw_mouse_affordances.bind(null, event, canvas_list[canvas_id]), false);
     canvas_list[canvas_id].addEventListener('contextmenu', event => event.preventDefault());//block rightclick on 'em
 }
+//----------------------------------------------------------------------------
+canvas_drawinn.onmousedown = function()
+{
+    event.preventDefault();
+    if(event.button == 0)
+    {
+        ++mouseDown;
+        color = "white";
+    }
+    if(event.button == 2)
+    {
+        ++mouseDown;
+        color = "black";
+    }
+}
+canvas_drawinn.onmouseup = function()
+{
+    event.preventDefault();
+    if(event.button == 0)
+    {
+
+        --mouseDown;
+        color = "white";
+    }
+    if(event.button == 2)
+    {
+
+        --mouseDown;
+        color = "black";
+    }
+}
+window.addEventListener('mousemove', draw_mouse_affordances.bind(null, event, canvas_drawinn), false);
+window.addEventListener('mousedown', draw_mouse_affordances.bind(null, event, canvas_drawinn), false);
+canvas_drawinn.addEventListener('contextmenu', event => event.preventDefault());//block rightclick on 'em
+//----------------------------------------------------------------------------
+
 
 
 
@@ -1064,7 +1033,8 @@ function fetch_data(){
           "tagger_id":tagger_id,
           "image_id":mydata['output']['image_id']
       };
-
+      console.log('output w/ tagger')
+      console.log(output)
       for (var index = 0; index < Object.keys(mydata['output']['tiles']).length; index++)
       {
           //console.log('inside for');
@@ -1091,6 +1061,8 @@ function fetch_data(){
 }
 
 function update_images(){
+    var drawinn_img = document.getElementById('drawer');
+    drawinn_img.src = mydata['output']['image'];
     var solid_img = document.getElementById('solid');
     solid_img.src = mydata['output']['image'];
     var solid_img = document.getElementById('solid');
@@ -1121,7 +1093,7 @@ function update_images(){
     grid_movey = mydata['output']['y_offset']
     console.log(grid_movex)
     console.log(grid_movey)
-    drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
+    //drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
     check_grid_on = 1;
     grid_checked = 1;
 
@@ -1132,6 +1104,15 @@ function update_images(){
         pos_y = poses['location_' + i]['y'];
         draw(pos_x, pos_y, canvas_draw);
     }
+    checkQ.checked = false;
+    checkW.checked = false;
+    checkE.checked = false;
+    checkA.checked = false;
+    checkS.checked = false;
+    checkD.checked = false;
+    checkZ.checked = false;
+    checkX.checked = false;
+    checkC.checked = false;
 }
 
 function send_output_to_server(){
@@ -1189,6 +1170,34 @@ function send_output_to_server(){
         break;
     }
 }*/
+function flip_affordance(whichcheckbox, whichcanvas){
+    if(whichcheckbox.checked)
+    {
+        poses = mydata['output']['tiles']['tile_' + num]['locations'];
+        for(i = 0; i < Object.keys(poses).length; i++)
+        {
+            pos_x = poses['location_' + i]['x'];
+            pos_y = poses['location_' + i]['y'];
+            draw_b(pos_x, pos_y, whichcanvas, GRID_SIZE, GRID_SIZE);
+        }
+        out_tiles['tile_'+num]['solid'] = 0;
+        whichcheckbox.checked = false;
+
+    }
+    else{
+        poses = mydata['output']['tiles']['tile_' + num]['locations'];
+        for(i = 0; i < Object.keys(poses).length; i++)
+        {
+            pos_x = poses['location_' + i]['x'];
+            pos_y = poses['location_' + i]['y'];
+            draw(pos_x, pos_y, whichcanvas);
+        }
+        out_tiles['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
+        whichcheckbox.checked = true;
+    }
+}
+
+
 var CHECK_GRID = 0;
 document.onkeydown = function(event)
 {
@@ -1198,9 +1207,59 @@ document.onkeydown = function(event)
     var poses = mydata['output']['tiles']['tile_' + num]['locations'];
     switch (event.keyCode)
     {
+        case 8: //Backspace
+                erase(canvas_draw);
+                if(CHECK_GRID)
+                {
+                    for(var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(0, 0, 0)');
+                        drawGrid(canvas_list[canvas_id], 256, 224, 16, 'rgb(150, 150, 150)');
+                    }
+                }
+
+                num = num - 1;
+                if (num == -1)//check evr time that num doesnt exceed amount of tiles
+                {
+                    num = num + 1;
+                    alert('Out of tiles. Current tile num = ' + num);
+                }
+
+                tile.src = tiles['tile_' + num]['tile_data'];
+                poses = mydata['output']['tiles']['tile_' + num]['locations'];
+
+                for(i = 0; i < Object.keys(poses).length; i++)
+                {
+                    pos_x = poses['location_' + i]['x'];
+                    pos_y = poses['location_' + i]['y'];
+                    draw(pos_x, pos_y, canvas_draw);
+                }
+                //checkboxes_____________________________________________________
+                checkQ.checked = false;
+                checkW.checked = false;
+                checkE.checked = false;
+                checkA.checked = false;
+                checkS.checked = false;
+                checkD.checked = false;
+                checkZ.checked = false;
+                checkX.checked = false;
+                checkC.checked = false;
+                //
+                output["tag_images"] =
+                {
+                    "solid": canvas_solid.toDataURL(),
+                    "movable":canvas_movable.toDataURL(),
+                    "destroyable":canvas_destroyable.toDataURL(),
+                    "dangerous":canvas_dangerous.toDataURL(),
+                    "gettable":canvas_gettable.toDataURL(),
+                    "portal":canvas_portal.toDataURL(),
+                    "usable":canvas_usable.toDataURL(),
+                    "changeable":canvas_changeable.toDataURL(),
+                    "ui":canvas_ui.toDataURL()
+                }
+        break;
         case 13: //ENTER
-
-
             if(grid_checked)
             {
                 erase(canvas_draw);
@@ -1223,7 +1282,7 @@ document.onkeydown = function(event)
 
                 tile.src = tiles['tile_' + num]['tile_data'];
                 poses = mydata['output']['tiles']['tile_' + num]['locations'];
-                drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
+                //drawGrid(canvas_draw, 256, 224, GRID_SIZE, 'rgb(250, 25, 25)')
                 for(i = 0; i < Object.keys(poses).length; i++)
                 {
                     pos_x = poses['location_' + i]['x'];
@@ -1279,183 +1338,99 @@ document.onkeydown = function(event)
         break;
         //____________________vvv keypress to draw on affordances squares vvv
         case 81: //q
-
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_solid);
-            }
-            out_tiles['tile_'+num]['solid'] = 1;//do for all affordances!!!!!!!!!!!!!
-            checkQ.checked = true;
-            //also replace all tmp with num
+            flip_affordance(checkQ, canvas_solid)
         break;
 
         case 87: //w
-
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_movable);
-            }
-            out_tiles['tile_'+num]['movable'] = 1;
-            checkW.checked = true;
+            flip_affordance(checkW, canvas_movable)
         break;
 
         case 69: //e
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_destroyable);
-            }
-            out_tiles['tile_'+num]['destroyable'] = 1;
-            checkE.checked = true;
+            flip_affordance(checkE, canvas_destroyable)
         break;
         case 65: //a
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_dangerous);
-            }
-            out_tiles['tile_'+num]['dangerous'] = 1;
-            checkA.checked = true;
+            flip_affordance(checkA, canvas_dangerous)
         break;
         case 83: //s
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_gettable);
-            }
-            out_tiles['tile_'+num]['gettable'] = 1;
-            checkS.checked = true;
+            flip_affordance(checkS, canvas_gettable)
         break;
         case 68: //d
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_portal);
-            }
-            out_tiles['tile_'+num]['portal'] = 1;
-            checkD.checked = true;
+            flip_affordance(checkD, canvas_portal)
         break;
 
         case 90: //z
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_usable);
-            }
-            out_tiles['tile_'+num]['usable'] = 1;
-            checkZ.checked = true;
+            flip_affordance(checkZ, canvas_usable)
         break;
 
         case 88: //x
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_changeable);
-            }
-            out_tiles['tile_'+num]['changeable'] = 1;
-            checkX.checked = true;
+            flip_affordance(checkX, canvas_changeable)
         break;
 
         case 67: // c
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
-            {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw(pos_x, pos_y, canvas_ui);
-            }
-            out_tiles['tile_'+num]['ui'] = 1;
-            checkC.checked = true;
+            flip_affordance(checkC, canvas_ui)
         break;
 
         case 27: // ECS
-            poses = mydata['output']['tiles']['tile_' + num]['locations'];
-            for(i = 0; i < Object.keys(poses).length; i++)
+            if(!is_big)
             {
-                pos_x = poses['location_' + i]['x'];
-                pos_y = poses['location_' + i]['y'];
-                draw_b(pos_x, pos_y, canvas_solid, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_dangerous, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_movable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_destroyable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_ui, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_gettable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
-                draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
-                out_tiles['tile_'+num]['solid'] = 0;
-                out_tiles['tile_'+num]['movable'] = 0;
-                out_tiles['tile_'+num]['destroyable'] = 0;
-                out_tiles['tile_'+num]['dangerous'] = 0;
-                out_tiles['tile_'+num]['gettable'] = 0;
-                out_tiles['tile_'+num]['portal'] = 0;
-                out_tiles['tile_'+num]['usable'] = 0;
-                out_tiles['tile_'+num]['changeable'] = 0;
-                out_tiles['tile_'+num]['ui'] = 0;
-                checkQ.checked = false;
-                checkW.checked = false;
-                checkE.checked = false;
-                checkA.checked = false;
-                checkS.checked = false;
-                checkD.checked = false;
-                checkZ.checked = false;
-                checkX.checked = false;
-                checkC.checked = false;
-            }
-            //save and load current state of affordances here
-            //var solid_img = document.getElementById('solid');
-            if(num == 0)
-            {
-                for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                poses = mydata['output']['tiles']['tile_' + num]['locations'];
+                for(i = 0; i < Object.keys(poses).length; i++)
                 {
-                    draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+                    pos_x = poses['location_' + i]['x'];
+                    pos_y = poses['location_' + i]['y'];
+                    draw_b(pos_x, pos_y, canvas_solid, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_dangerous, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_movable, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_destroyable, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_ui, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_gettable, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_portal, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_usable, GRID_SIZE, GRID_SIZE);
+                    draw_b(pos_x, pos_y, canvas_changeable, GRID_SIZE, GRID_SIZE);
+                    output['tile_'+num]['solid'] = 0;
+                    output['tile_'+num]['movable'] = 0;
+                    output['tile_'+num]['destroyable'] = 0;
+                    output['tile_'+num]['dangerous'] = 0;
+                    output['tile_'+num]['gettable'] = 0;
+                    output['tile_'+num]['portal'] = 0;
+                    output['tile_'+num]['usable'] = 0;
+                    output['tile_'+num]['changeable'] = 0;
+                    output['tile_'+num]['ui'] = 0;
+                    checkQ.checked = false;
+                    checkW.checked = false;
+                    checkE.checked = false;
+                    checkA.checked = false;
+                    checkS.checked = false;
+                    checkD.checked = false;
+                    checkZ.checked = false;
+                    checkX.checked = false;
+                    checkC.checked = false;
+                }
+                //save and load current state of affordances here
+                //var solid_img = document.getElementById('solid');
+                if(num == 0)
+                {
+                    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+                    }
+                }
+                else
+                {
+                    for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+                    {
+                        draw_picture(output["tag_images"][Object.keys(output["tag_images"])[canvas_id]], canvas_list[canvas_id], 256, 224);
+                    }
                 }
             }
             else
             {
-                for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
-                {
-                    draw_picture(output["tag_images"][Object.keys(output["tag_images"])[canvas_id]], canvas_list[canvas_id]);
-                }
+                alert("Close the big image first!");
             }
-
-
-
-            //solid_img.src = output["tag_images"]["solid"];
         break;
 
         /*case GRID_SIZE: do this if want shift
             shift_down = 1;
         break;*/
     }
-}
-
-function checkBoxes(checkBoxID){
-    var box = document.getElementById(checkBoxID);
-
-    if (box.checked){
-        box.checked = false;
-    }
-    else{
-        box.checked = true;
-    }
-    console.log(checkBoxID + " is " + box.checked)
 }
