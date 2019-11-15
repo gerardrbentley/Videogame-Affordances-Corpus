@@ -1017,6 +1017,10 @@ function fetch_data(){
   console.log(mydata)
   tagger_id = document.getElementById("tagger_id").getAttribute('tagger')
   temp_url = "/get_image?tagger-id=" + tagger_id
+  for (var canvas_id = 0; canvas_id < canvas_list.length; canvas_id++)
+  {
+    draw_b(0, 0, canvas_list[canvas_id], 256, 224);
+  }
   $.get(temp_url, function(json)
   {
       mydata = json;
@@ -1122,7 +1126,6 @@ function send_output_to_server(){
       success: function (data) {
         console.log('Sent labels to server /submit_tags')
         console.log(data)
-        fetch_data()
       }
     });
 }
