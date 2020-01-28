@@ -9,3 +9,5 @@ vgac_tagging/games
 affordance_prediction/__pycache__/
 games/
 old_games/
+data/
+trained_models/
