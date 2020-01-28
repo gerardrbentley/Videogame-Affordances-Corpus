@@ -103,7 +103,7 @@ class Trainer(object):
         input_transform = transforms.Compose([ToTensorBCHW()])
 
         aug_dataset = GameAffordancesDataset(
-            game='loz', data_dir='app/games', transform=input_transform)
+            game='loz', data_dir='../games', transform=input_transform)
         test_len = int(0.2 * len(aug_dataset))
         args.logger.info(
             f'Dataset loaded containing {len(aug_dataset)} entries. test length: {test_len}')
@@ -143,7 +143,7 @@ class Trainer(object):
 
         #pos_examples, neg_examples = calculate_weights(aug_dataset)
         if args.weight == 'None':
-            pos_weight = torch.ones(9, 224, 256)
+            pos_weight = torch.ones(10, 224, 256)
         else:
             pos_weight = calculate_weights(aug_dataset)
             #pos_weight = median_freq_weights(aug_dataset)
@@ -178,7 +178,7 @@ class Trainer(object):
         start_time = time.time()
         # model = NeuralNetClassifier(
         #         module=InitialConvModel,
-        #         criterion=nn.functional.binary_cross_entropy_with_logits(torch.randn(224, 256, 9), torch.randn(224, 256, 9), reduction='mean'),
+        #         criterion=nn.functional.binary_cross_entropy_with_logits(torch.randn(224, 256, 10), torch.randn(224, 256, 10), reduction='mean'),
         #         optimizer=torch.optim.Adam(self.model.parameters()),
         #         lr=self.args.lr,
         #         max_epochs=self.args.epochs,
@@ -252,7 +252,7 @@ class Trainer(object):
                 iteration = iteration + 1
                 #self.lr_scheduler.step()
                 images = data['image'].to(self.device, non_blocking=True)
-                targets = data['affordances'].to(
+                targets = data['target'].to(
                     self.device, non_blocking=True)
                 outputs = self.model(images)
                 # loss_dict = self.criterion(outputs, targets)
@@ -313,7 +313,7 @@ class Trainer(object):
                 #self.lr_scheduler.step()
 
                 images = data['image'].to(self.device, non_blocking=True)
-                targets = data['affordances'].to(
+                targets = data['target'].to(
                     self.device, non_blocking=True)
 
                 if first_run:
@@ -381,7 +381,7 @@ class Trainer(object):
         bce_losses = torch.empty(len(self.test_loader), device=self.device)
         for i, data in enumerate(self.test_loader):
             image = data['image'].to(self.device)
-            target = data['affordances'].to(self.device)
+            target = data['target'].to(self.device)
 
             with torch.no_grad():
                 output = model(image)
@@ -461,12 +461,12 @@ def save_initial(model, args):
 
 
 def calculate_weights(dataset):
-    pos_examples = torch.zeros(9, 224, 256, dtype=torch.float)
-    neg_examples = torch.zeros(9, 224, 256, dtype=torch.float)
+    pos_examples = torch.zeros(10, 224, 256, dtype=torch.float)
+    neg_examples = torch.zeros(10, 224, 256, dtype=torch.float)
     for i in range(len(dataset)):
         image = dataset[i]['image']
         target = dataset[i]['affordances']
-        for x in range(9):
+        for x in range(10):
             targ_channel = target[x, :, :]
             bi_targ = torch.where(targ_channel > 0.5, torch.ones(
                 [1], dtype=torch.int), torch.zeros([1], dtype=torch.int))
@@ -486,14 +486,14 @@ def calculate_weights(dataset):
 
 def median_freq_weights(dataset):
     frequencies = []
-    for i in range(9):
+    for i in range(10):
         frequencies.append(torch.empty(0))
-    pos_examples = torch.zeros(9, dtype=torch.float)
-    total_examples = torch.zeros(9, dtype=torch.float)
+    pos_examples = torch.zeros(10, dtype=torch.float)
+    total_examples = torch.zeros(10, dtype=torch.float)
     for i in range(len(dataset)):
         image = dataset[i]['image']
         target = dataset[i]['affordances']
-        for x in range(9):
+        for x in range(10):
             targ_channel = target[x, :, :]
             bi_targ = torch.where(targ_channel > 0.5, torch.ones(
                 [1], dtype=torch.int), torch.zeros([1], dtype=torch.int))
@@ -508,14 +508,14 @@ def median_freq_weights(dataset):
 
     freq_c = torch.div(pos_examples, total_examples)
 
-    med_frequencies = torch.zeros(9, dtype=torch.float)
-    for i in range(9):
+    med_frequencies = torch.zeros(10, dtype=torch.float)
+    for i in range(10):
         med_frequencies[i] = torch.median(
             frequencies[i], dim=0).values
 
     pos_weight = torch.div(med_frequencies, freq_c)
     print('MED FREQ WEIGHTS: {}'.format(pos_weight.data))
-    output = torch.empty(9, 224, 256, dtype=torch.float)
+    output = torch.empty(10, 224, 256, dtype=torch.float)
     for i in range(224):
         for j in range(256):
             output[:, i, j] = pos_weight

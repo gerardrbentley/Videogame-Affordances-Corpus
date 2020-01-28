@@ -10,11 +10,11 @@ from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from PIL import Image
 
 affords = ["solid", "movable", "destroyable",
-           "dangerous", "gettable", "portal", "usable", "changeable", "ui"]
+           "dangerous", "gettable", "portal", "usable", "changeable", "ui", "permeable"]
 AFFORDANCES = affords
 
 dum_img = torch.randn(3, 224, 256)
-dum_label = torch.randn(9, 224, 256)
+dum_label = torch.randn(10, 224, 256)
 
 
 class DummyDataset(Dataset):
@@ -25,45 +25,48 @@ class DummyDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        return {'image': dum_img, 'affordances': dum_label}
-
-
-'''
-Assumes each image game/img/2.png has a corresponding game/label/2.npy
-'''
+        return {'image': dum_img, 'target': dum_label}
 
 
 class GameAffordancesDataset(Dataset):
-    def __init__(self, game='loz', data_dir='app/games/', transform=None):
-        self.image_dir = os.path.join(data_dir, game, 'img')
-        # self.affordances_dir = affordances_dir
+    def __init__(self, game='loz', data_dir='/app/games/', transform=None):
+        self.image_dir = os.path.join(data_dir, game, 'screenshots')
 
-        image_files = glob.glob(self.image_dir + "*.png")
-        self.length = len(image_files)
+        self.image_folders = next(os.walk(self.image_dir))[1]
+        self.length = len(self.image_folders)
         self.transform = transform
 
     def __len__(self):
         return self.length
 
+    def get_affordances_target(self, folder_name):
+        label_files = glob.glob(os.path.join(
+                self.image_dir, folder_name, "*.npy"))
+        if len(label_files) > 0:
+            label_file = label_files[0]
+
+            stacked_np = np.load(label_file)
+            stacked_np = (stacked_np * 255).astype(np.uint8)
+            first_channel = Image.fromarray(stacked_np[:, :, 0], mode="L")
+            channels = (first_channel,)
+            for x in range(1, 10):
+                channel = stacked_np[:, :, x]
+                channel_PIL = Image.fromarray(channel, mode='L')
+                channels += (channel_PIL,)
+
+            affordances = channels
+
+        return affordances
+
     def __getitem__(self, idx):
-        img_file = os.path.join(self.image_dir, str(idx) + '.png')
-        image = Image.open(img_file).convert('RGB')
+        folder_name = self.image_folders[idx]
+        screenshot_file = os.path.join(
+                self.image_dir, folder_name, f'{folder_name}.png')
 
-        label_file = img_file.replace('img', 'label').replace('.png', '.npy')
-        # stacked_tensor = torch.load(label_file)
-        # stacked_tensor.requires_grad_(False)
-        stacked_np = np.load(label_file)
-        stacked_np = (stacked_np * 255).astype(np.uint8)
-        first_channel = Image.fromarray(stacked_np[:, :, 0], mode="L")
-        channels = (first_channel,)
-        for x in range(1, 9):
-            channel = stacked_np[:, :, x]
-            channel_PIL = Image.fromarray(channel, mode='L')
-            channels += (channel_PIL,)
+        image = Image.open(screenshot_file).convert('RGB')
+        target = self.get_affordances_target(folder_name)
 
-        affordances = channels
-
-        sample = {'image': image, 'affordances': affordances}
+        sample = {'image': image, 'target': target}
 
         if self.transform:
             sample = self.transform(sample)
@@ -79,7 +82,7 @@ class Rescale(object):
         self.output_size = output_size
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
 
         w, h = image.size
 
@@ -89,7 +92,7 @@ class Rescale(object):
         fn = transforms.Resize((new_h, new_w))
         image = fn(image)
         affordances = tuple(map(fn, affordances))
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class RandomCrop(object):
@@ -101,7 +104,7 @@ class RandomCrop(object):
         self.output_size = output_size
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
 
         w, h = image.size
         new_w, new_h = self.output_size
@@ -116,7 +119,7 @@ class RandomCrop(object):
         fn = transforms.Resize((h, w))
         image = fn(image)
         affordances = tuple(map(fn, affordances))
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class RandomRotate(object):
@@ -126,13 +129,13 @@ class RandomRotate(object):
         self.angle = angle
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
         rand_deg = np.random.randint(0, self.angle)
         def fn(x): return x.rotate(rand_deg, resample=Image.BILINEAR)
         image = fn(image)
         affordances = tuple(map(fn, affordances))
 
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class RandomFlip(object):
@@ -143,7 +146,7 @@ class RandomFlip(object):
         self.tb = flip_top_bottom
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
         rand = np.random.randint(0, 1)
         if self.lr and rand:
             def fn(x): return x.transpose(Image.FLIP_LEFT_RIGHT)
@@ -155,7 +158,7 @@ class RandomFlip(object):
             image = fn(image)
             affordances = tuple(map(fn, affordances))
 
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class RandomShear(object):
@@ -165,14 +168,14 @@ class RandomShear(object):
         self.deg = deg
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
         rand_deg = np.random.randint(-self.deg, self.deg)
         def fn(x): return transforms.functional.affine(x, angle=0, translate=[
                0, 0], scale=1, shear=rand_deg, resample=Image.BILINEAR)
         image = fn(image)
         affordances = tuple(map(fn, affordances))
 
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class RandomReColor(object):
@@ -195,11 +198,11 @@ class RandomReColor(object):
         self.hue = hue
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
         image = transforms.ColorJitter(
             self.brightness, self.contrast, self.saturation, self.hue)(image)
 
-        return {'image': image, 'affordances': affordances}
+        return {'image': image, 'target': affordances}
 
 
 class GammaChange(object):
@@ -208,10 +211,10 @@ class GammaChange(object):
             self.gain = gain
 
         def __call__(self, sample):
-            image, affordances = sample['image'], sample['affordances']
+            image, affordances = sample['image'], sample['target']
             image = transforms.functional.adjust_gamma(
                 image, self.gamma, self.gain)
-            return {'image': image, 'affordances': affordances}
+            return {'image': image, 'target': affordances}
 
 
 class ToTensorBCHW(object):
@@ -219,7 +222,7 @@ class ToTensorBCHW(object):
     in the form Batch x Channels x Height x Width """
 
     def __call__(self, sample):
-        image, affordances = sample['image'], sample['affordances']
+        image, affordances = sample['image'], sample['target']
         fn = transforms.ToTensor()
         affordances = list(map(fn, affordances))
         stack = torch.stack(affordances, dim=1)
@@ -228,7 +231,7 @@ class ToTensorBCHW(object):
 
         image = fn(image)
         image.requires_grad_(False)
-        return {'image': image, 'affordances': stack}
+        return {'image': image, 'target': stack}
 
 
 def save_model(network, title):
@@ -241,6 +244,10 @@ def load_model(network, title):
     path = "trained_models/" + title
     network.load_state_dict(torch.load(path))
 
+def torch_max_min_str(tensor):
+    mini = torch.min(tensor).item()
+    maxi = torch.max(tensor).item()
+    return f'Range: {mini} - {maxi}'
 
 multitransform = transforms.Compose([RandomCrop((180, 180)), RandomFlip(
     flip_left_right=True, flip_top_bottom=True), RandomReColor(hue=0.3, saturation=0.3, contrast=0.2), ToTensorBCHW()])
@@ -250,55 +257,19 @@ recolortransform = transforms.Compose(
 
 #tests for tranforms
 def test():
-    writer = SummaryWriter()
+    testtransform = transforms.Compose([ToTensorBCHW()])
+    data = GameAffordancesDataset(game='loz', data_dir='../games')
+    print(len(data))
+    print(type(data[0]))
+    print(type(data[0]['image']), type(data[0]['target']))
+    x = testtransform(data[0])
+    img, targ = x['image'], x['target']
+    print(type(img), type(targ))
+    print((img).shape, (targ).shape)
+    print(torch_max_min_str(img), torch_max_min_str(targ))
 
-    #data = GrayAffordancesDataset(image_dir="data/train_img/", affordances_dir="data/train_label/")
-    data = TensorAffordancesDataset(
-        image_dir="data/aug_img/", affordances_dir="data/aug_label/")
 
-    test = transforms.Compose([ToTensorBCHW()])
-    color = transforms.Compose(
-        [RandomReColor(hue=0.5, saturation=0.3), ToTensorBCHW()])
-    color2 = transforms.Compose(
-        [RandomReColor(hue=0.5, contrast=0.1, saturation=0.3), ToTensorBCHW()])
-    all = transforms.Compose([RandomCrop((150, 100)), RandomFlip(flip_left_right=True, flip_top_bottom=True), RandomShear(
-        deg=50), RandomRotate(330), RandomReColor(hue=0.5, saturation=0.3, contrast=0.2), ToTensorBCHW()])
-    sample = data[3]
-
-    for i in range(0, 400, 7):
-        sample = data[i]
-        image, affordances = sample['image'], sample['affordances'].squeeze(0)
-        for x in range(9):
-            writer.add_image('screenshot_'+str(i)+'/'+affords[x],
-                             affordances[x, :, :], 0, dataformats='HW')
-
-        writer.add_image('screenshot_'+str(i)+'/' + 'a',
-                         image, 0, dataformats='CHW')
-    # for i, tsfrm in enumerate([all, color, test]):
-    #     for z in range(1):
-    #         tsample = tsfrm(sample)
-    #         #tsample = tensor(tsample)
-    #         #channels_actual = []
-    #         # for x in range(11):
-    #         #     channel = sample['affordance'][:, :,x]
-    #         #     channels_actual.append(channel)
-    #         #     writer.add_image('targetmaps_'+str(i)+'/'+str(x),
-    #         #                      channels_actual[x], 0, dataformats='HW')
-    #         channels = tsample['affordances'].squeeze(0)
-    #         #print(channels.size())
-    #         img = tsample['image'].squeeze(0)
-    #         for x in range(9):
-    #             writer.add_image('screenshot_'+str(i)+'/'+affords[x],
-    #                              channels[x,:,:], 0, dataformats='HW')
-    #
-    #         # writer.add_image('screenshot_tra'+'/'+str(i),
-    #         #                  channels[0,:,:], 0, dataformats='HW')
-    #         writer.add_image('screenshot_'+str(i)+'/' +str(z),
-    #                   img, 0, dataformats='HW')
-
-    writer.close()
-
-    print('done 64')
+    print('done 47')
 
 
 def pre_augment():
@@ -359,5 +330,5 @@ def pre_augment():
 
 
 if __name__ == '__main__':
-    pre_augment()
+    # pre_augment()
     test()

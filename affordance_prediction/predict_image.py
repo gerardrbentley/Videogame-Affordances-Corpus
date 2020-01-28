@@ -46,7 +46,7 @@ def main(args):
 
     affords = affordancedata.AFFORDANCES
 
-    img = Image.open(args.image_path).convert('L')
+    img = Image.open(args.image_path).convert('RGB')
     img.save(os.path.join(args.output_dir, 'test_img.png'))
     print('saved image copy to output dir')
     img = transforms.ToTensor()(img).unsqueeze(0)
@@ -54,7 +54,7 @@ def main(args):
     predictions = model(img)
     predictions = torch.sigmoid(predictions)
 
-    for x in range(9):
+    for x in range(10):
         channel = predictions[0, x, :, :].detach().mul(255).numpy()
         #print(channel.size())
         #print('chan', affords[x], 'max' ,channel.max(), 'min', channel.min())

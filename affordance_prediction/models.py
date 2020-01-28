@@ -12,7 +12,7 @@ class InitialConvModel(nn.Module):
         super(InitialConvModel, self).__init__()
 
         # 1 input channels
-        self.conv1 = nn.Conv2d(1, 128, kernel_size=7, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(3, 128, kernel_size=7, stride=2, padding=1)
         self.bn1 = nn.BatchNorm2d(128)
         self.relu1 = nn.ReLU(inplace=True)
         # self.fc1 = nn.Linear(6*224*256, 360)
@@ -35,7 +35,7 @@ class InitialConvModel(nn.Module):
         self.fc_relu = nn.ReLU()
         # num_classes, filters, 1x1
         self.deconv1 = nn.ConvTranspose2d(
-            128, 9, kernel_size=7, stride=2, padding=1)
+            128, 10, kernel_size=7, stride=2, padding=1)
         self.deconv2 = nn.ConvTranspose2d(
             256, 128, kernel_size=5, stride=2, padding=1)
         self.deconv3 = nn.ConvTranspose2d(
@@ -77,7 +77,7 @@ class FourConvModel(nn.Module):
         super(FourConvModel, self).__init__()
 
         # 1 input channels
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu1 = nn.ReLU(inplace=True)
         # self.fc1 = nn.Linear(6*224*256, 360)
@@ -104,7 +104,7 @@ class FourConvModel(nn.Module):
         self.fc_relu = nn.ReLU()
         # num_classes, filters, 1x1
         self.deconv1 = nn.ConvTranspose2d(
-            64, 9, kernel_size=7, stride=1, padding=1)
+            64, 10, kernel_size=7, stride=1, padding=1)
         self.deconv2 = nn.ConvTranspose2d(
             64, 64, kernel_size=7, stride=1, padding=1)
         self.deconv3 = nn.ConvTranspose2d(
@@ -154,7 +154,7 @@ class ThreeConvModel(nn.Module):
         super(ThreeConvModel, self).__init__()
 
         # 1 input channels
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu1 = nn.ReLU(inplace=True)
         # self.fc1 = nn.Linear(6*224*256, 360)
@@ -177,7 +177,7 @@ class ThreeConvModel(nn.Module):
         self.fc_relu = nn.ReLU()
         # num_classes, filters, 1x1
         self.deconv1 = nn.ConvTranspose2d(
-            64, 9, kernel_size=7, stride=1, padding=1)
+            64, 10, kernel_size=7, stride=1, padding=1)
         self.deconv2 = nn.ConvTranspose2d(
             64, 64, kernel_size=7, stride=1, padding=1)
         self.deconv3 = nn.ConvTranspose2d(
