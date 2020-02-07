@@ -113,6 +113,40 @@ flask run
 
 ## Pre-processing
 Suggested usage:
+
+`cd pre_processing`
+
+### Videos to Screenshots
+Use `mkv_to_pngs.sh` to go from a folder of game trace (folders with a `recording.mkv` file inside) to slice out screenshots and movie file into sanitized game name folder
+
+```
+bash mkv_to_pngs.sh /home/username/videos/Pokemon-12341234 copyvids
+```
+For many folders:
+```
+ls -d /home/username/videos/* | parallel bash mkv_to_pngs.sh {} copyvids
+```
+
+This produces per_game_screenshots with sanitized game name folders inside
+
+### Uniquify Screenshots
+Uses http://www.jhnc.org/findimagedupes/
+
+Find and output dupes of one game to txt file
+
+`findimagedupes -t=99% $FOLDER_OF_IMAGES/ > $DUPE_FILE.txt`
+
+Delete all but one of each set of dupes from text file
+
+`python rm_after_first.py --file $DUPE_FILE.txt`
+
+For many folders:
+** TODO ** Figure out why parallel isnt't working, or wait for parallel
+`for d in $PWD/per_game_screenshots/*/ ; do findimagedupes -t=99% "$d" > "$(basename "$d")"-dupes.txt; done`
+
+Sequential still spawn many perl processes?? Small folders go very quick
+`ls -d $PWD/*-dupes.txt | parallel 'python rm_after_first.py --file {}'`
+
 ```
 cd pre_processing
 parallel --bar --jobs 4 'python yolo_predict_grid_offset.py --game sm3 --dest output --k 5 --grid-size 8 --ui-height 40 --ui-position bot --file {}' ::: PATH/TO/IMAGES/FOR/GAME/*.png
