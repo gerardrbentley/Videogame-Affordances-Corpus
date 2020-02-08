@@ -40,12 +40,23 @@ class ScrollingDataset(Dataset):
         image_tuple = (original_im,shifted_im)
         target = (x_shift,y_shift)
         sample = {'image': image_tuple, 'target': target}
-
         if self.transform:
             sample = self.transform(sample)
-
         return sample
 
+class ToTensorBCHW(object):
+    """Convert image and affordance to Tensors for input to model
+    in the form Batch x Channels x Height x Width """
 
-sd = ScrollingDataset()
+    def __call__(self, sample):
+        images, shift = list(sample['image']), sample['target']
+        fn = transforms.ToTensor()
+        images = list(map(fn, images))
+        print(images[0].shape,images[1].shape)
+        cat_ = torch.cat(images,0)
+        print(cat_.shape)
+        return {'image': cat_, 'target': stack}
+
+sd = ScrollingDataset(transform=transforms.Compose([ToTensorBCHW()]))
+
 sd.__getitem__(0)
