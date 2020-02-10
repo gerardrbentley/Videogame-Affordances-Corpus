@@ -10,31 +10,38 @@ if [ "$1" != "" ]; then
     echo "$DIR"
     echo "slice .mkv file in trace folder $1 into per_game_screenshots"
     FOLDER=$(basename "$1")
-    # echo "Original folder: $FOLDER"
-
-    # remove everything after _ (trace tag)
-    CLEAN_GAME="${FOLDER%%_*}"
-    # sub _ for spaces
-    CLEAN_GAME=${CLEAN_GAME// /_}
-    # Remove non a-z, A-Z, 0-9, or _
-    CLEAN_GAME=${CLEAN_GAME//[^a-zA-Z0-9_]/}
-    # Replace double __ with _ (from names like pokemon - blue)
-    CLEAN_GAME=${CLEAN_GAME//__/_}
-    # lowercase all
-    CLEAN_GAME=${CLEAN_GAME,,}
+    CLEAN_GAME="$FOLDER"
+    if [ "$2" == "--clean" ] || [ "$3" == "--clean" ]; then
+	echo "Clean Folder Name"
+	# remove everything after _ (trace tag)
+	CLEAN_GAME="${FOLDER%%_*}"
+	# sub _ for spaces
+	CLEAN_GAME=${CLEAN_GAME// /_}
+	# Remove non a-z, A-Z, 0-9, or _
+	CLEAN_GAME=${CLEAN_GAME//[^a-zA-Z0-9_]/}
+	# Replace double __ with _ (from names like pokemon - blue)
+	CLEAN_GAME=${CLEAN_GAME//__/_}
+	# lowercase all
+	CLEAN_GAME=${CLEAN_GAME,,}
+    fi
     echo "Old folder: $FOLDER | New folder: $CLEAN_GAME"
 
     mkdir -p "$DIR/per_game_screenshots/$CLEAN_GAME"
-    
-    # Use $1 for path $FOLDER to avoid screenshot naming collisions
-    ffmpeg -i "$1"/recording.mkv -r 2 "$DIR"/per_game_screenshots/"$CLEAN_GAME"/sc-"$FOLDER"-%04d.png
-    
-    if [ "$2" != "" ]; then
-        mkdir -p "$DIR/per_game_videos/$CLEAN_GAME"
-        NEXT=`ls -f "$DIR/per_game_videos/$CLEAN_GAME" | wc -l`
-        # echo "$NEXT"
-        cp "$1"/recording.mkv "$DIR/per_game_videos/$CLEAN_GAME/$NEXT.mkv"
-    fi
+    for d in "$1"/*.mkv;
+    do
+	uuid=$(uuidgen -r)
+	# NEXT=`ls -f "$1/*.mkv" | wc -l`
+	# Use $1 for path $FOLDER to avoid screenshot naming collisions
+        ffmpeg -i "$d" -r 2 "$DIR"/per_game_screenshots/"$CLEAN_GAME"/sc-"$uuid"-%04d.png;
+
+	if [ "$2" == "--copy" ] || [ "$3" == "--copy" ]; then
+	    echo "copy video file"
+            mkdir -p "$DIR/per_game_videos/$CLEAN_GAME"
+            # NEXT=`ls -f "$DIR/per_game_videos/$CLEAN_GAME" | wc -l`
+            # echo "$NEXT"
+            cp "$d" "$DIR/per_game_videos/$CLEAN_GAME/$uuid.mkv"
+	fi
+    done
     echo --------------------------------
 else
     echo "No param 1"

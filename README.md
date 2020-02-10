@@ -147,6 +147,16 @@ For many folders:
 Sequential still spawn many perl processes?? Small folders go very quick
 `ls -d $PWD/*-dupes.txt | parallel 'python rm_after_first.py --file {}'`
 
+
+### Get unique tiles from screenshots
+
+Using imagemagick to slice image into 8x8 tiles
+
+convert $IMAGE -crop 8x8 +adjoin /faim/datasets/per_image_tiles/$IMAGE/$IMAGE-%04d.png`
+
+
+
+### Old Tiling
 ```
 cd pre_processing
 parallel --bar --jobs 4 'python yolo_predict_grid_offset.py --game sm3 --dest output --k 5 --grid-size 8 --ui-height 40 --ui-position bot --file {}' ::: PATH/TO/IMAGES/FOR/GAME/*.png
