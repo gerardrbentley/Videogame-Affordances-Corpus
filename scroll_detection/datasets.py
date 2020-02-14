@@ -45,7 +45,7 @@ class ScrollingDataset(Dataset):
         return sample
 
 class ToTensorBCHW(object):
-    """Convert image and affordance to Tensors for input to model
+    """Convert two images into stacked Tensors for input to model
     in the form Batch x Channels x Height x Width """
 
     def __call__(self, sample):
@@ -59,4 +59,5 @@ class ToTensorBCHW(object):
 
 sd = ScrollingDataset(transform=transforms.Compose([ToTensorBCHW()]))
 
-sd.__getitem__(0)
+a,b = sd.__getitem__(0)
+print(a.size,b.size)
