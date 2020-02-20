@@ -120,11 +120,11 @@ Suggested usage:
 Use `mkv_to_pngs.sh` to go from a folder of game trace (folders with a `recording.mkv` file inside) to slice out screenshots and movie file into sanitized game name folder
 
 ```
-bash mkv_to_pngs.sh /home/username/videos/Pokemon-12341234 copyvids
+bash mkv_to_pngs.sh /home/username/videos/Pokemon-12341234 --copy
 ```
 For many folders:
 ```
-ls -d /home/username/videos/* | parallel bash mkv_to_pngs.sh {} copyvids
+ls -d /home/username/videos/* | parallel bash mkv_to_pngs.sh {} --copy
 ```
 
 This produces per_game_screenshots with sanitized game name folders inside
