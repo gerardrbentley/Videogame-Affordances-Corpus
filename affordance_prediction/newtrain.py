@@ -121,6 +121,7 @@ class Trainer(object):
                                        batch_size=args.batch_size,
                                        num_workers=args.workers,
                                        pin_memory=True)
+
         self.test_loader = DataLoader(dataset=test_dataset,
                                       shuffle=False,
                                       batch_size=1,
