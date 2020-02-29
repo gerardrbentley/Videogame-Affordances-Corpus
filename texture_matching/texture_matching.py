@@ -44,6 +44,9 @@ def main(args):
 
     print(f"Template matching known textures")
     safe_img = np.copy(orig_image)
+    
+    args.x_offset, args.y_offset = grid_offset_by_anchors(safe_img, textures, args)
+    
     repainted_image, confidence = match_known_textures(safe_img, textures, args)
     print(f"Done matching")
     cv2.imwrite(f"{name}_thr_{int(args.threshold*1000)}_repaint.png", repainted_image)
@@ -117,6 +120,35 @@ def load_known_templates(dir='./textures', fill_color=[0,0,0,255]):
     print(f"Total texs loaded: {total}. Minimized: {len(known_templates)}, all alpha: {alpha_ct}")
     return known_templates
 
+def grid_offset_by_anchors(image, known_textures, args):
+    for tex_file, data in known_textures.items():
+        if tex_file[:6] == 'anchor':
+            to_match = data[0]
+
+            if args.sqdiff:
+                results = cv2.matchTemplate(image, to_match, cv2.TM_SQDIFF_NORMED)
+                results = np.where(~np.isnan(results), results, 0)
+                results = np.where(~np.isinf(results), results, 0)
+            else:
+                results = cv2.matchTemplate(image, to_match, cv2.TM_CCORR_NORMED)
+                results = np.where(~np.isnan(results), results, 0)
+                results = np.where(~np.isinf(results), results, 0)
+            
+            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(results)
+
+            if args.sqdiff and minVal == 0.0:
+                print(minLoc)
+                print((minLoc[0] % 16), (minLoc[1] % 16))
+                print((minLoc[0] / 16), (minLoc[1] / 16))
+                return ((minLoc[0] % 16), (minLoc[1] % 16))
+            elif not args.sqdiff and maxVal == 1.0:
+                print(maxLoc)
+                print(((maxLoc[0] % 16), (maxLoc[1] % 16)))
+                return ((maxLoc[0] % 16), (maxLoc[1] % 16))
+    print('NO ANCHOR MATCH')
+    return (0,0)
+
+
 def match_known_textures(image, known_textures, args):
     """Takes BGR OpenCV image and dictionary of textures from load_known_textures and uses
     template matching with args.threshold to locate textures in the image. Fills an output
@@ -146,6 +178,17 @@ def match_known_textures(image, known_textures, args):
     else:
         confidence_map = np.zeros((image.shape[0], image.shape[1]), np.float)
         comparison = lambda x,y: x > y
+
+    h, w, *_ = image.shape
+    grid_size = 16
+    # Need to treat 0,0 offset the same as others, else it will observe one more row and col
+    xmax = w-grid_size + args.x_offset
+    cols = (w-grid_size)//grid_size
+    ymax = h-grid_size + args.y_offset
+    rows = (h-grid_size)//grid_size
+    included_indices = [(r*grid_size + args.y_offset, c*grid_size + args.x_offset) for r in range(rows)
+                         for c in range(cols)]
+
     for file_name, data in known_textures.items():
         old_texture, mask, orig = data
         if args.sqdiff:
@@ -158,13 +201,16 @@ def match_known_textures(image, known_textures, args):
             results = np.where(~np.isnan(results), results, 0)
             results = np.where(~np.isinf(results), results, 0)
             loc = np.where(results >= args.threshold)
+
         minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(results)
-        matches = list(zip(*loc[::1]))
-        if file_name == 'tile_199':
-            print(f"00: {minVal}, {maxVal}, {minLoc}, {maxLoc}")
-            print(len(matches))
-        if len(matches) > 9000:
-            print(f"OVER 9000 {file_name}: {len(matches)}")
+        full_matches = list(zip(*loc[::1]))
+
+        # rows, cols = grid_using_crop(grid_offset_x=3, grid_offset_y=7)
+        # print(cols)
+        matches = list(filter(lambda t: t in included_indices, full_matches))
+
+        if len(full_matches) > 9000:
+            print(f"OVER 9000 {file_name}: {len(full_matches)}. minimized: {len(matches)}")
         if len(matches) != 0 and len(matches) < 9000:
             curr_color = colorset[ctr]
             ctr += 1
@@ -207,7 +253,8 @@ def match_known_textures(image, known_textures, args):
     normalized = np.zeros_like(confidence_map, dtype=np.uint8)
     for i, val in enumerate(np.unique(confidence_map)):
         normalized[confidence_map == val] = space[i]
-
+    # for (r,c) in included_indices:
+    #     image[r, c, :] = [255,0,0]
     conf = cv2.applyColorMap(normalized, cv2.COLORMAP_AUTUMN)
     if args.save_imgs:
         # print(np.unique(confidence_map))
