@@ -142,10 +142,10 @@ Delete all but one of each set of dupes from text file
 
 For many folders:
 ** TODO ** Figure out why parallel isnt't working, or wait for parallel
-`for d in $PWD/per_game_screenshots/*/ ; do findimagedupes -t=99% "$d" > "$(basename "$d")"-dupes.txt; done`
+`for d in "$(pwd)"/per_game_screenshots/*/ ; do findimagedupes -t=99% "$d" > "$(basename "$d")"-dupes.txt; done`
 
 Sequential still spawn many perl processes?? Small folders go very quick
-`ls -d $PWD/*-dupes.txt | parallel 'python rm_after_first.py --file {}'`
+`ls -d "$(pwd)"/*-dupes.txt | parallel 'python rm_after_first.py --file {}'`
 
 
 ### Get unique tiles from screenshots

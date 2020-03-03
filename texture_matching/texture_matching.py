@@ -10,6 +10,8 @@ import random
 import colorsys
 random.seed(4747)
 
+from textures_using_anchors import grid_offset_by_anchors, load_known_templates
+
 def get_colorset(num_colors):
     colors=[]
     for i in np.arange(0., 360., 360. / num_colors):
@@ -21,133 +23,51 @@ def get_colorset(num_colors):
     return colors
 
 def main(args):
-    file_name = os.path.split(args.file)[1]
-    name = os.path.splitext(file_name)[0]
-    # Load in with opencv
-    orig_image = cv2.imread(args.file, cv2.IMREAD_UNCHANGED)
-    if orig_image.shape[2] == 4:
-        orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGRA2BGR)
-
-    h, w, *_ = orig_image.shape
-
-    # Specific to SMB, most common top row pixel will be background
-    top_row = []
-    for i in range(w):
-        pixel = orig_image[0, i, :3]
-        top_row.append((pixel[0], pixel[1], pixel[2]))
-    x = max(top_row, key=top_row.count)
-    background_color = np.array([x[0], x[1], x[2], 255])
+    if args.folder != '':
+        file_paths = glob.glob(os.path.join(args.folder, '*.png'))
+    else:
+        file_paths = [args.file]
     
-    print(f"Loading textures")
-    textures = load_known_templates(args.textures, background_color)
-    print(f"Num textures: {len(textures)}")
-
-    print(f"Template matching known textures")
-    safe_img = np.copy(orig_image)
-    
-    args.x_offset, args.y_offset = grid_offset_by_anchors(safe_img, textures, args)
-    
-    repainted_image, confidence = match_known_textures(safe_img, textures, args)
-    print(f"Done matching")
-    cv2.imwrite(f"{name}_thr_{int(args.threshold*1000)}_repaint.png", repainted_image)
-    # cv2.imwrite(f"{name}_conf_thr_{int(args.threshold*1000)}.png", confidence)
-    cv2.imwrite(f"{name}_orig.png", orig_image)
-
-def load_known_templates(dir='./textures', fill_color=[0,0,0,255]):
-    """Loads textures from pngs in directory. For textures with empty alpha areas, crops to smallest size without losing pixels and fills with fill_color.
-    Yields dictionary mapping filenames to filled_texture, binary alpha mask, and original texture in 4 channel
-    
-    Keyword Arguments:
-        dir {str} -- Where png textures are stored (default: {'./textures'})
-        fill_color {list} -- Fill color for alpha channel (default: {[0,0,0,255]})
-    
-    Returns:
-        dict[str] -> (filled_img_bgr, binary_mask, orig_img_bgra)
-    """    
-    known_templates = {}
-    total = 0
-    alpha_ct = 0
-    for file in glob.glob(os.path.join(dir, '*.png')):
-        total += 1
-        file_name = os.path.split(file)[1]
+    os.makedirs('segmented_images', exist_ok=True)
+    for file_path in file_paths:
+        file_name = os.path.split(args.file)[1]
         name = os.path.splitext(file_name)[0]
-        img = cv2.imread(file, cv2.IMREAD_UNCHANGED)
-        channels = cv2.split(img)
-  
+        # Load in with opencv
+        orig_image = cv2.imread(args.file, cv2.IMREAD_UNCHANGED)
+        if orig_image.shape[2] == 4:
+            orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGRA2BGR)
 
-        if len(channels) == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        h, w, *_ = orig_image.shape
+
+        # Specific to SMB, most common top row pixel will be background
+        top_row = []
+        for i in range(w):
+            pixel = orig_image[0, i, :3]
+            top_row.append((pixel[0], pixel[1], pixel[2]))
+        x = max(top_row, key=top_row.count)
+        background_color = np.array([x[0], x[1], x[2], 255])
         
-        all_alpha = False
-        if len(channels) == 4 :
-            if np.count_nonzero(img[:,:,3]) == 0:
-                all_alpha = True
-                alpha_ct += 1
-                continue
-            #coords of nonzero alpha values
-            y,x = img[:,:,3].nonzero()
-            crop_y1 = np.min(y)
-            crop_x1 = np.min(x)
-            crop_x2 = np.max(x)
-            crop_y2 = np.max(y)
+        print(f"Loading textures")
+        textures = load_known_templates(args.textures, background_color)
+        print(f"Num textures: {len(textures)}")
 
-            # cropped_tex = np.copy(img)[crop_y1:crop_y2+1, crop_x1:crop_x2+1]
-            
-            # channels = cv2.split(cropped_tex)
-            
-            # Used for painting image only where template has data
-            mask = np.array(channels[3])
-            mask[channels[3] == 0] = 0
-            mask[channels[3] == 255] = 255
+        print(f"Loading anchors")
+        anchors = load_known_templates(args.anchors, background_color)
+        print(f"Num anchors: {len(anchors)}")
 
-            # Add background color to template match with mask but punish background color
-            out_image = np.copy(img)
-            out_image[channels[3] == 0] = fill_color
-            out_image = cv2.cvtColor(out_image, cv2.COLOR_BGRA2BGR)
-        else:
-            out_image = np.copy(img)
-            mask = np.full_like(img[:,:,0], 255)
+        safe_img = np.copy(orig_image)
+        
+        print(f"Getting offset by anchors")
+        args.x_offset, args.y_offset = grid_offset_by_anchors(safe_img, anchors, args)
+        print(f"Got offset: {args.x_offset}, {args.y_offset}")
+        print(f"Template matching known textures")
 
-        flag = False
-        for key, data in known_templates.items():
-            old_out = data[0]
-            if np.array_equal(old_out, out_image):
-                flag = True
-                break
-            
-        if not flag and not all_alpha:
-            known_templates[name] = (out_image, mask, img)
-    print(f"Total texs loaded: {total}. Minimized: {len(known_templates)}, all alpha: {alpha_ct}")
-    return known_templates
+        repainted_image, confidence = match_known_textures(safe_img, textures, args)
 
-def grid_offset_by_anchors(image, known_textures, args):
-    for tex_file, data in known_textures.items():
-        if tex_file[:6] == 'anchor':
-            to_match = data[0]
-
-            if args.sqdiff:
-                results = cv2.matchTemplate(image, to_match, cv2.TM_SQDIFF_NORMED)
-                results = np.where(~np.isnan(results), results, 0)
-                results = np.where(~np.isinf(results), results, 0)
-            else:
-                results = cv2.matchTemplate(image, to_match, cv2.TM_CCORR_NORMED)
-                results = np.where(~np.isnan(results), results, 0)
-                results = np.where(~np.isinf(results), results, 0)
-            
-            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(results)
-
-            if args.sqdiff and minVal == 0.0:
-                print(minLoc)
-                print((minLoc[0] % 16), (minLoc[1] % 16))
-                print((minLoc[0] / 16), (minLoc[1] / 16))
-                return ((minLoc[0] % 16), (minLoc[1] % 16))
-            elif not args.sqdiff and maxVal == 1.0:
-                print(maxLoc)
-                print(((maxLoc[0] % 16), (maxLoc[1] % 16)))
-                return ((maxLoc[0] % 16), (maxLoc[1] % 16))
-    print('NO ANCHOR MATCH')
-    return (0,0)
-
+        print(f"Done matching")
+        cv2.imwrite(f"{name}_thr_{int(args.threshold*1000)}_repaint.png", repainted_image)
+        # cv2.imwrite(f"{name}_conf_thr_{int(args.threshold*1000)}.png", confidence)
+        cv2.imwrite(f"{name}_orig.png", orig_image)
 
 def match_known_textures(image, known_textures, args):
     """Takes BGR OpenCV image and dictionary of textures from load_known_textures and uses
@@ -266,9 +186,12 @@ def match_known_textures(image, known_textures, args):
 def parse_args():
     parser = argparse.ArgumentParser(description='Textrue match detection')
 
-    parser.add_argument('--file', type=str, default='./smb/screenshots/5.png')
+    parser.add_argument('--file', type=str, default='./smb/screens/5.png')
+    parser.add_argument('--folder', type=str, default='')
     parser.add_argument('--textures', type=str, default='./smb/textures/')
-    parser.add_argument('--threshold', type=float, default=0.985)
+    parser.add_argument('--anchors', type=str, default='./smb/anchors/')
+    parser.add_argument('--threshold', type=float, default=0.98)
+    parser.add_argument('--grid-size', type=int, default=16)
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--save-imgs', action='store_true')
     parser.add_argument('--save-np', action='store_true')
